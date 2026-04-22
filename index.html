@@ -1,0 +1,1899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tenant Leads CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+<!-- Firebase -->
+<script type="module">
+import{initializeApp}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+import{getFirestore,doc,getDoc,setDoc,collection,getDocs,writeBatch,deleteDoc,onSnapshot}from'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+const firebaseConfig={
+  apiKey:"AIzaSyC8HIr_qxvX78pCIDN2Q71rxZGkLAZuVlU",
+  authDomain:"curbside-leads-dashboard.firebaseapp.com",
+  projectId:"curbside-leads-dashboard",
+  storageBucket:"curbside-leads-dashboard.firebasestorage.app",
+  messagingSenderId:"926175297835",
+  appId:"1:926175297835:web:268c091efcf9546dcb056e"
+};
+const app=initializeApp(firebaseConfig);
+const db=getFirestore(app);
+window._fbDb=db;
+window._fbDoc=doc;
+window._fbGetDoc=getDoc;
+window._fbSetDoc=setDoc;
+window._fbCollection=collection;
+window._fbGetDocs=getDocs;
+window._fbWriteBatch=writeBatch;
+window._fbDeleteDoc=deleteDoc;
+window._fbOnSnapshot=onSnapshot;
+window._fbReady=true;
+window.dispatchEvent(new Event('firebase-ready'));
+</script>
+<style>
+:root{
+  --bg:#FAF8F5;--bg2:#F3EFE8;--bg3:#EAE4D8;--border:#DDD6CB;--border2:#C8BDB0;
+  --text:#261F18;--text-mid:#6B5F54;--text-dim:#A09285;
+  --terra:#B85540;--terra-lt:#F5E8E3;--terra-md:#E5B8A8;
+  --sage:#4F7A60;--sage-lt:#E5EFEA;--sage-md:#B0CEBC;
+  --amber:#9A6418;--amber-lt:#FBF0D8;--amber-md:#E0B870;
+  --blue:#3A5F8A;--blue-lt:#E3ECF5;--blue-md:#A8C0D8;
+  --cold:#8B8B8B;
+  --shadow:0 1px 3px rgba(38,31,24,.07),0 4px 14px rgba(38,31,24,.05);
+  --shadow-lg:0 8px 40px rgba(38,31,24,.16),0 2px 8px rgba(38,31,24,.1);
+  --sidebar-w:210px;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;font-size:13px;}
+.app{display:flex;height:100vh;overflow:hidden;}
+
+/* ── SIDEBAR ── */
+.sidebar{width:var(--sidebar-w);min-width:var(--sidebar-w);height:100vh;background:#fff;border-right:1px solid var(--border);display:flex;flex-direction:column;z-index:50;flex-shrink:0;}
+.sb-logo{padding:18px 16px 14px;border-bottom:1px solid var(--border);}
+.sb-wordmark{font-family:'Playfair Display',serif;font-size:14px;font-weight:500;color:var(--text);line-height:1.25;display:block;margin-bottom:2px;}
+.sb-sub{font-size:9px;color:var(--text-dim);letter-spacing:.1em;text-transform:uppercase;}
+.sb-address{font-size:9px;color:var(--terra);letter-spacing:.04em;margin-top:3px;font-weight:500;}
+.sb-nav{padding:10px 8px;flex:1;overflow-y:auto;}
+.nav-item{display:flex;align-items:center;gap:9px;width:100%;padding:9px 10px;border-radius:6px;border:none;background:none;cursor:pointer;font-family:'Outfit',sans-serif;font-size:12px;font-weight:500;color:var(--text-mid);transition:all .15s;text-align:left;margin-bottom:3px;}
+.nav-item:hover{background:var(--bg2);color:var(--text);}
+.nav-item.active{background:var(--terra-lt);color:var(--terra);font-weight:600;}
+.nav-item .nav-ico{width:16px;height:16px;flex-shrink:0;opacity:.7;}
+.nav-item.active .nav-ico{opacity:1;}
+.nav-item .nav-label{flex:1;}
+.nav-item .nav-badge{font-size:10px;font-weight:700;background:var(--bg3);border-radius:10px;padding:1px 6px;color:var(--text-dim);}
+.nav-item.active .nav-badge{background:var(--terra-md);color:var(--terra);}
+.sb-section-label{font-size:9px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);padding:10px 10px 5px;margin-top:4px;}
+.sb-user{padding:10px 8px;border-top:1px solid var(--border);}
+.sb-user-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:5px;padding:0 2px;}
+.user-switch{display:flex;gap:4px;}
+.usw{flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:5px 4px;font-family:'Outfit',sans-serif;font-size:10px;font-weight:600;color:var(--text-mid);cursor:pointer;transition:all .15s;text-align:center;}
+.usw:hover{border-color:var(--border2);color:var(--text);}
+.usw.active{background:var(--terra);border-color:var(--terra);color:#fff;}
+.sb-footer{padding:10px 12px;border-top:1px solid var(--border);}
+.sb-footer-txt{font-size:10px;color:var(--text-dim);line-height:1.5;}
+.sb-refresh{display:flex;align-items:center;gap:5px;width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:5px 9px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all .15s;margin-top:7px;}
+.sb-refresh:hover{border-color:var(--border2);color:var(--text);}
+
+/* ── CONTENT ── */
+.content{flex:1;min-width:0;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+.view{display:none;flex:1;min-height:0;flex-direction:column;overflow:hidden;}
+.view.active{display:flex;}
+
+/* ── TOPBAR ── */
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:11px 22px;display:flex;align-items:center;justify-content:space-between;gap:10px;flex-shrink:0;}
+.topbar-title{font-family:'Playfair Display',serif;font-size:15px;font-weight:400;color:var(--text);}
+.topbar-title em{font-style:italic;color:var(--text-mid);font-size:13px;margin-left:6px;}
+.topbar-right{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.search-box{position:relative;}
+.search-box input{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 10px 6px 28px;font-family:'Outfit',sans-serif;font-size:12px;color:var(--text);width:175px;outline:none;transition:border-color .15s,box-shadow .15s;}
+.search-box input:focus{border-color:var(--terra);box-shadow:0 0 0 3px var(--terra-lt);}
+.srch-ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--text-dim);pointer-events:none;font-size:11px;}
+.vbtn{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:5px 9px;cursor:pointer;color:var(--text-mid);transition:all .15s;font-size:12px;line-height:1;}
+.vbtn.active,.vbtn:hover{background:var(--terra-lt);border-color:var(--terra-md);color:var(--terra);}
+.date-tag{font-size:11px;color:var(--text-dim);background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:5px 9px;white-space:nowrap;}
+
+/* ── STATS STRIP ── */
+.stats-strip{background:#fff;border-bottom:1px solid var(--border);display:flex;overflow-x:auto;padding:0 22px;flex-shrink:0;}
+.stat{padding:10px 20px 10px 0;margin-right:20px;border-right:1px solid var(--border);white-space:nowrap;min-width:max-content;}
+.stat:last-child{border-right:none;}
+.stat-l{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--text-dim);margin-bottom:2px;}
+.stat-v{font-family:'Playfair Display',serif;font-size:20px;font-weight:400;color:var(--text);line-height:1;}
+.stat-v small{font-family:'Outfit',sans-serif;font-size:11px;color:var(--text-dim);margin-left:2px;}
+.stat-v.s-hi{color:var(--sage);}
+.stat-v.s-warn{color:var(--amber);}
+.stat-v.s-terra{color:var(--terra);}
+
+/* ── PIPELINE STAGE FILTER BAR ── */
+.pipe-bar{background:#fff;border-bottom:1px solid var(--border);padding:8px 22px;display:flex;gap:5px;overflow-x:auto;align-items:center;flex-shrink:0;}
+.pb-label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-right:4px;white-space:nowrap;}
+.pb-stage{display:flex;align-items:center;gap:4px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:4px 9px;white-space:nowrap;cursor:pointer;transition:all .15s;}
+.pb-stage:hover,.pb-stage.ap{background:var(--bg3);border-color:var(--border2);}
+.pb-dot{width:7px;height:7px;border-radius:50%;}
+.pb-name{font-size:11px;font-weight:500;color:var(--text-mid);}
+.pb-n{font-size:10px;font-weight:600;background:var(--bg3);border-radius:8px;padding:1px 5px;color:var(--text-dim);}
+
+/* ── LEADS FILTERS ── */
+.leads-filters{padding:9px 22px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+.fl{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:.1em;margin-right:2px;}
+.fp{background:#fff;border:1px solid var(--border);border-radius:16px;padding:3px 11px;font-size:11px;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif;}
+.fp:hover{border-color:var(--terra);color:var(--terra);}
+.fp.on{background:var(--terra);border-color:var(--terra);color:#fff;}
+.fp.on-a{background:var(--blue);border-color:var(--blue);color:#fff;}
+.fsep{width:1px;height:16px;background:var(--border);margin:0 2px;flex-shrink:0;}
+.fsort{margin-left:auto;}
+.fsort select{background:#fff;border:1px solid var(--border);border-radius:5px;padding:4px 8px;font-family:'Outfit',sans-serif;font-size:11px;color:var(--text-mid);outline:none;cursor:pointer;}
+
+/* ── LEADS SCROLL ── */
+.leads-scroll{flex:1;overflow-y:auto;padding:16px 22px 40px;}
+.grid-meta{font-size:11px;color:var(--text-dim);margin-bottom:10px;}
+.grid-meta b{color:var(--text-mid);}
+.cat-group{margin-bottom:22px;}
+.cat-hdr{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding-bottom:6px;border-bottom:1.5px solid var(--border);}
+.cat-hdr h3{font-family:'Playfair Display',serif;font-size:14px;font-weight:400;font-style:italic;color:var(--text);}
+.cat-hdr .cat-desc{font-size:10px;color:var(--text-dim);letter-spacing:.04em;font-style:normal;}
+.cat-n{font-size:10px;color:var(--text-dim);background:var(--bg3);border-radius:8px;padding:1px 7px;}
+.subcategory-group{margin-bottom:14px;}
+.subcat-hdr{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:7px;padding-left:2px;display:flex;align-items:center;gap:6px;}
+.subcat-hdr::after{content:'';flex:1;height:1px;background:var(--border);}
+.brand-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(265px,1fr));gap:8px;}
+
+/* ── BRAND CARD ── */
+.bcard{background:#fff;border:1px solid var(--border);border-radius:6px;padding:13px;cursor:pointer;transition:box-shadow .18s,border-color .18s,transform .1s;position:relative;overflow:hidden;}
+.bcard:hover{box-shadow:var(--shadow);border-color:var(--border2);transform:translateY(-1px);}
+.bcard.ac{border-color:var(--terra);box-shadow:0 0 0 2px var(--terra-lt),var(--shadow);}
+.bcard.stale{border-left:3px solid var(--amber);}
+.cstrip{position:absolute;top:0;left:0;right:0;height:3px;border-radius:6px 6px 0 0;}
+.card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:7px;margin-top:4px;}
+.cname{font-family:'Playfair Display',serif;font-size:13px;font-weight:500;color:var(--text);line-height:1.2;margin-bottom:2px;}
+.chandle{font-size:10px;font-weight:500;}
+.ch-v{color:var(--terra);}
+.ch-u{color:var(--text-dim);}
+.cpills{display:flex;flex-wrap:wrap;gap:3px;margin-bottom:7px;}
+.cpill{padding:2px 7px;border-radius:9px;font-size:10px;font-weight:500;letter-spacing:.03em;white-space:nowrap;}
+.cp-home{background:var(--amber-lt);color:var(--amber);border:1px solid var(--amber-md);}
+.cp-semi{background:var(--blue-lt);color:var(--blue);border:1px solid var(--blue-md);}
+.sp-pill{padding:2px 7px;border-radius:9px;font-size:9px;font-weight:600;border:1px solid;}
+.cconcept{font-size:11px;color:var(--text-mid);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px;}
+
+/* card meta row */
+.card-meta-row{display:flex;align-items:center;justify-content:space-between;border-top:1px solid var(--border);padding-top:7px;gap:6px;flex-wrap:wrap;}
+.cm-owner{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-mid);}
+.cm-owner .avatar{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;}
+.cm-date{font-size:10px;color:var(--text-dim);}
+.cm-snooze{font-size:9px;color:var(--amber);font-weight:600;background:var(--amber-lt);border:1px solid var(--amber-md);border-radius:8px;padding:1px 6px;}
+.card-note-snippet{font-size:10px;color:var(--text-mid);background:var(--bg2);border-radius:3px;padding:4px 7px;margin-bottom:6px;border-left:2px solid var(--border2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden;}
+
+/* ── LIST VIEW ── */
+.list-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:6px;}
+.ltbl{width:100%;border-collapse:collapse;font-size:12px;}
+.ltbl th{background:var(--bg2);border-bottom:1px solid var(--border);padding:7px 10px;text-align:left;font-weight:600;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--text-dim);white-space:nowrap;cursor:pointer;}
+.ltbl th:hover{color:var(--terra);}
+.ltbl td{padding:8px 10px;border-bottom:1px solid rgba(221,214,203,.45);vertical-align:middle;}
+.ltbl tr:last-child td{border-bottom:none;}
+.ltbl tr:hover td{background:rgba(184,85,64,.03);}
+.ltrow{cursor:pointer;}
+
+/* ── DRAWER ── */
+.overlay{position:fixed;inset:0;background:rgba(38,31,24,.2);z-index:300;opacity:0;pointer-events:none;transition:opacity .2s;}
+.overlay.on{opacity:1;pointer-events:all;}
+.drawer{position:fixed;right:0;top:0;bottom:0;width:min(520px,90vw);background:#fff;z-index:301;transform:translateX(100%);transition:transform .25s cubic-bezier(.22,.8,.3,1);overflow-y:auto;border-left:1px solid var(--border);display:flex;flex-direction:column;}
+.drawer.open{transform:translateX(0);}
+.dhead{padding:16px 20px 12px;border-bottom:1px solid var(--border);position:sticky;top:0;background:#fff;z-index:10;}
+.dclose{position:absolute;top:14px;right:16px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:4px 9px;cursor:pointer;font-size:13px;color:var(--text-mid);line-height:1;transition:all .15s;}
+.dclose:hover{background:var(--bg3);}
+.dcat{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-bottom:3px;}
+.dname{font-family:'Playfair Display',serif;font-size:20px;font-weight:500;color:var(--text);line-height:1.1;margin-bottom:3px;}
+.dsub{font-size:11px;color:var(--text-mid);}
+.d-owner-row{display:flex;align-items:center;gap:6px;margin-top:7px;}
+.d-owner-label{font-size:10px;color:var(--text-dim);}
+.owner-btn{display:flex;align-items:center;gap:4px;padding:3px 8px;border-radius:12px;border:1px solid var(--border);background:var(--bg2);cursor:pointer;font-family:'Outfit',sans-serif;font-size:10px;font-weight:600;color:var(--text-mid);transition:all .15s;}
+.owner-btn:hover{border-color:var(--border2);}
+.owner-btn.selected{border-color:transparent;color:#fff;}
+.owner-btn .oa{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;flex-shrink:0;}
+.crm-sec{background:var(--bg2);border-bottom:1px solid var(--border);padding:13px 20px;}
+.crm-title{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-bottom:8px;font-weight:600;}
+.stage-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px;}
+.sbtn{background:#fff;border:1px solid var(--border);border-radius:5px;padding:6px 4px;text-align:center;cursor:pointer;transition:all .15s;}
+.sbtn:hover{border-color:var(--border2);}
+.sbtn.as{border-width:2px;}
+.sbtn .sd{width:7px;height:7px;border-radius:50%;margin:0 auto 2px;}
+.sbtn .sn{font-size:9px;font-weight:600;color:var(--text-mid);}
+.note-wrap label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);display:block;margin-bottom:3px;}
+.note-wrap textarea{width:100%;background:#fff;border:1px solid var(--border);border-radius:5px;padding:7px 9px;font-family:'Outfit',sans-serif;font-size:12px;color:var(--text);resize:vertical;min-height:60px;outline:none;transition:border-color .15s;}
+.note-wrap textarea:focus{border-color:var(--terra);}
+.crm-row{display:flex;align-items:center;gap:8px;margin-top:7px;}
+.save-btn{background:var(--terra);border:none;border-radius:5px;padding:6px 14px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:#fff;cursor:pointer;transition:background .15s;}
+.save-btn:hover{background:#9A4433;}
+.saved-msg{font-size:11px;color:var(--sage);opacity:0;transition:opacity .3s;}
+.saved-msg.show{opacity:1;}
+.log-list{margin-top:10px;}
+.log-entry{background:#fff;border:1px solid var(--border);border-radius:5px;padding:7px 9px;margin-bottom:4px;}
+.le-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;gap:6px;}
+.le-stage{font-size:10px;font-weight:700;}
+.le-date{font-size:10px;color:var(--text-dim);}
+.le-user{font-size:9px;font-weight:600;padding:1px 5px;border-radius:8px;color:#fff;}
+.le-note{font-size:11px;color:var(--text-mid);line-height:1.45;}
+.dlinks{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+.dlink{display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:5px;font-size:12px;font-weight:500;text-decoration:none;transition:all .15s;border:1px solid;white-space:nowrap;}
+.dl-ig{background:var(--terra-lt);border-color:var(--terra-md);color:var(--terra);}
+.dl-ig:hover{background:var(--terra);color:#fff;border-color:var(--terra);}
+.dl-web{background:var(--blue-lt);border-color:var(--blue-md);color:var(--blue);}
+.dl-web:hover{background:var(--blue);color:#fff;border-color:var(--blue);}
+.dl-srch{background:var(--amber-lt);border-color:var(--amber-md);color:var(--amber);}
+.dl-srch:hover{background:var(--amber);color:#fff;border-color:var(--amber);}
+.ig-warn{font-size:10px;color:var(--amber);padding:0 20px 8px;display:block;}
+.dbody{padding:14px 20px;flex:1;}
+.dsec{margin-bottom:14px;}
+.dst{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-bottom:6px;font-weight:600;display:flex;align-items:center;gap:5px;}
+.dst::after{content:'';flex:1;height:1px;background:var(--border);}
+.dbox{background:var(--bg2);border-radius:5px;padding:9px 11px;font-size:12px;color:var(--text);line-height:1.6;}
+.dbox.green{background:var(--sage-lt);}
+.dbox.terra{background:var(--terra-lt);color:var(--terra);border-left:3px solid var(--terra);}
+.dbox.amber{background:var(--amber-lt);color:var(--amber);}
+.dbox.amber.fl::before{content:'⚠ ';font-weight:700;}
+.dbox.italic{font-style:italic;color:var(--text-mid);border-left:3px solid var(--border2);}
+.kv2{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.kv{background:var(--bg2);border-radius:5px;padding:7px 9px;}
+.kv label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);display:block;margin-bottom:2px;}
+.kv span{font-size:12px;color:var(--text);font-weight:500;line-height:1.4;}
+.next-step-box{background:var(--sage-lt);border:1px solid var(--sage-md);border-radius:5px;padding:9px 11px;margin-bottom:10px;}
+.nsb-label{font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--sage);font-weight:600;margin-bottom:3px;}
+.nsb-input{width:100%;background:transparent;border:none;font-family:'Outfit',sans-serif;font-size:12px;color:var(--text);outline:none;padding:0;}
+.nsb-input::placeholder{color:var(--sage);opacity:.6;font-style:italic;}
+
+/* ── PIPELINE BOARD ── */
+.dash-fbar{padding:9px 22px;display:flex;align-items:center;gap:5px;flex-wrap:wrap;border-bottom:1px solid var(--border);background:var(--bg);flex-shrink:0;}
+.legend{margin-left:auto;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.leg-item{display:flex;align-items:center;gap:4px;font-size:10px;color:var(--text-dim);}
+.leg-dot{width:7px;height:7px;border-radius:50%;}
+.board-area{display:flex;flex:1;min-height:0;overflow:hidden;gap:0;}
+.board-wrap{flex:1;overflow-x:auto;overflow-y:hidden;min-height:0;}
+.board{display:flex;gap:8px;padding:12px 16px 20px;height:100%;align-items:flex-start;min-width:max-content;}
+.col{width:220px;min-width:220px;border-radius:7px;display:flex;flex-direction:column;max-height:100%;border:1px solid;}
+.col-hdr{padding:9px 11px;display:flex;justify-content:space-between;align-items:center;border-radius:7px 7px 0 0;flex-shrink:0;}
+.col-title{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;}
+.col-count{font-size:11px;font-weight:700;border-radius:10px;padding:1px 6px;}
+.col-cards{overflow-y:auto;padding:6px;flex:1;border-radius:0 0 7px 7px;}
+.col-empty{text-align:center;padding:16px 8px;color:var(--text-dim);font-size:11px;font-style:italic;}
+.kc{background:#fff;border:1px solid var(--border);border-left:3px solid;border-radius:5px;padding:9px;margin-bottom:5px;cursor:pointer;transition:box-shadow .15s,transform .1s;position:relative;}
+.kc:hover{box-shadow:var(--shadow);transform:translateY(-1px);}
+.kc-name{font-family:'Playfair Display',serif;font-size:12px;font-weight:500;color:var(--text);line-height:1.2;margin-bottom:2px;}
+.kc-sub{font-size:9px;color:var(--text-dim);margin-bottom:4px;}
+.kc-pills{display:flex;flex-wrap:wrap;gap:2px;margin-bottom:5px;}
+.kcp{padding:1px 6px;border-radius:7px;font-size:9px;font-weight:500;}
+.kcp-home{background:var(--amber-lt);color:var(--amber);border:1px solid var(--amber-md);}
+.kcp-semi{background:var(--blue-lt);color:var(--blue);border:1px solid var(--blue-md);}
+.kc-note{font-size:10px;color:var(--text-mid);line-height:1.4;margin-bottom:5px;background:var(--bg2);padding:4px 6px;border-radius:3px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.kc-meta{display:flex;justify-content:space-between;align-items:center;}
+.kc-date{font-size:9px;color:var(--text-dim);}
+.kc-owner-dot{width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;}
+.kc-att{position:absolute;top:6px;right:7px;width:7px;height:7px;border-radius:50%;background:var(--amber);animation:pulse-att 2s infinite;}
+@keyframes pulse-att{0%,100%{opacity:1;}50%{opacity:.4;}}
+
+/* ── ACTIVITY FEED (pipeline sidebar) ── */
+.activity-panel{width:260px;min-width:260px;background:#fff;border-left:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden;flex-shrink:0;}
+.ap-header{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
+.ap-title{font-family:'Playfair Display',serif;font-size:13px;font-weight:500;color:var(--text);margin-bottom:1px;}
+.ap-sub{font-size:10px;color:var(--text-dim);}
+.ap-scroll{flex:1;overflow-y:auto;padding:8px;}
+.af-item{padding:8px 9px;border-radius:6px;border:1px solid var(--border);background:var(--bg);margin-bottom:5px;cursor:pointer;transition:border-color .15s;}
+.af-item:hover{border-color:var(--border2);}
+.af-item.af-new{border-left:3px solid;}
+.af-top{display:flex;align-items:center;gap:5px;margin-bottom:3px;}
+.af-avatar{width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0;}
+.af-user{font-size:10px;font-weight:600;color:var(--text-mid);}
+.af-time{font-size:9px;color:var(--text-dim);margin-left:auto;}
+.af-lead{font-family:'Playfair Display',serif;font-size:11px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.af-action{font-size:10px;color:var(--text-dim);line-height:1.4;}
+.af-stage{display:inline-flex;align-items:center;gap:3px;font-size:9px;font-weight:600;}
+.af-stage-dot{width:5px;height:5px;border-radius:50%;}
+.ap-empty{text-align:center;padding:20px 12px;color:var(--text-dim);font-size:11px;font-style:italic;}
+
+/* ── PIPELINE POPOVER ── */
+.pop-ov{position:fixed;inset:0;z-index:399;display:none;}
+.pop{position:fixed;background:#fff;border:1px solid var(--border);border-radius:8px;box-shadow:var(--shadow-lg);z-index:400;width:290px;display:none;padding:14px;max-height:76vh;overflow-y:auto;}
+.pop-head{margin-bottom:10px;padding-right:18px;}
+.pop-name{font-family:'Playfair Display',serif;font-size:17px;font-weight:500;color:var(--text);line-height:1.1;margin-bottom:2px;}
+.pop-sub{font-size:11px;color:var(--text-dim);}
+.pop-close{position:absolute;top:10px;right:10px;background:var(--bg2);border:1px solid var(--border);border-radius:4px;cursor:pointer;color:var(--text-mid);font-size:12px;line-height:1;padding:3px 7px;transition:all .15s;}
+.pop-close:hover{background:var(--bg3);}
+.pop-sec{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-bottom:6px;font-weight:600;display:flex;align-items:center;gap:5px;}
+.pop-sec::after{content:'';flex:1;height:1px;background:var(--border);}
+.pop-stages{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;margin-bottom:10px;}
+.pstg{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 4px;text-align:center;cursor:pointer;transition:all .15s;}
+.pstg:hover{background:var(--bg3);}
+.pstg.ps-on{border-width:2px;}
+.pstg-dot{width:7px;height:7px;border-radius:50%;margin:0 auto 2px;}
+.pstg-n{font-size:9px;font-weight:600;color:var(--text-mid);}
+.pop-owner-row{display:flex;align-items:center;gap:5px;margin-bottom:10px;padding:6px 8px;background:var(--bg2);border-radius:5px;}
+.pop-owner-lbl{font-size:10px;color:var(--text-dim);}
+.pop-owner-val{font-size:11px;font-weight:600;color:var(--text-mid);margin-left:auto;}
+.pop-logs{max-height:120px;overflow-y:auto;}
+.plog{padding:5px 7px;background:var(--bg2);border-radius:4px;margin-bottom:3px;}
+.plog-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px;gap:5px;}
+.plog-stg{font-size:9px;font-weight:700;}
+.plog-user{font-size:8px;font-weight:600;padding:1px 4px;border-radius:6px;color:#fff;}
+.plog-date{font-size:9px;color:var(--text-dim);margin-left:auto;}
+.plog-note{font-size:10px;color:var(--text-mid);line-height:1.4;}
+.pop-detail-btn{display:block;width:100%;margin-top:9px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px;text-align:center;font-size:11px;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif;}
+.pop-detail-btn:hover{background:var(--bg3);color:var(--text);}
+.pop-no-logs{font-size:11px;color:var(--text-dim);font-style:italic;text-align:center;padding:8px;}
+
+/* ── CONCERNS / TASKS VIEW ── */
+.tasks-wrap{flex:1;overflow-y:auto;padding:16px 22px 40px;}
+.tasks-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.task-add-bar{background:#fff;border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:16px;}
+.task-add-row{display:flex;gap:7px;align-items:flex-end;flex-wrap:wrap;}
+.ta-field{flex:1;min-width:150px;}
+.ta-field label{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);display:block;margin-bottom:3px;}
+.ta-field input,.ta-field select{width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:6px 9px;font-family:'Outfit',sans-serif;font-size:12px;color:var(--text);outline:none;transition:border-color .15s;}
+.ta-field input:focus,.ta-field select:focus{border-color:var(--terra);}
+.ta-add-btn{background:var(--terra);border:none;border-radius:5px;padding:7px 14px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:#fff;cursor:pointer;white-space:nowrap;transition:background .15s;}
+.ta-add-btn:hover{background:#9A4433;}
+.task-card{background:#fff;border:1px solid var(--border);border-radius:6px;padding:11px 13px;margin-bottom:6px;display:flex;align-items:flex-start;gap:10px;transition:border-color .15s;}
+.task-card:hover{border-color:var(--border2);}
+.task-card.tc-done{opacity:.5;}
+.tc-check{width:17px;height:17px;border-radius:4px;border:1.5px solid var(--border2);flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;margin-top:1px;transition:all .15s;background:#fff;}
+.tc-check:hover{border-color:var(--terra);}
+.tc-check.checked{background:var(--sage);border-color:var(--sage);color:#fff;}
+.tc-body{flex:1;min-width:0;}
+.tc-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:4px;line-height:1.35;}
+.task-card.tc-done .tc-title{text-decoration:line-through;color:var(--text-dim);}
+.tc-meta{display:flex;align-items:center;gap:6px;flex-wrap:wrap;}
+.tc-assignee{display:flex;align-items:center;gap:3px;font-size:10px;font-weight:600;}
+.tc-assignee .ta-av{width:14px;height:14px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;}
+.tc-status{font-size:10px;font-weight:600;padding:1px 7px;border-radius:8px;border:1px solid;}
+.tc-date{font-size:10px;color:var(--text-dim);}
+.tc-del{margin-left:auto;background:none;border:1px solid transparent;border-radius:4px;cursor:pointer;color:var(--text-dim);font-size:12px;padding:2px 6px;transition:all .15s;flex-shrink:0;}
+.tc-del:hover{border-color:var(--terra-md);color:var(--terra);background:var(--terra-lt);}
+.task-section-hdr{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-bottom:8px;margin-top:16px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.task-section-hdr span{background:var(--bg3);border-radius:8px;padding:1px 6px;font-size:10px;}
+.tasks-filters{display:flex;align-items:center;gap:5px;flex-wrap:wrap;}
+
+/* status pills */
+.ts-todo{background:var(--amber-lt);color:var(--amber);border-color:var(--amber-md);}
+.ts-inprog{background:var(--blue-lt);color:var(--blue);border-color:var(--blue-md);}
+.ts-done{background:var(--sage-lt);color:var(--sage);border-color:var(--sage-md);}
+.ts-blocked{background:var(--terra-lt);color:var(--terra);border-color:var(--terra-md);}
+
+/* EMPTY */
+.empty{text-align:center;padding:48px 20px;color:var(--text-dim);}
+
+/* stale badge */
+.stale-badge{font-size:9px;color:var(--amber);font-weight:600;background:var(--amber-lt);border:1px solid var(--amber-md);border-radius:8px;padding:1px 6px;white-space:nowrap;}
+.new-badge{font-size:9px;color:var(--sage);font-weight:600;background:var(--sage-lt);border:1px solid var(--sage-md);border-radius:8px;padding:1px 6px;white-space:nowrap;}
+/* archive */
+.arch-badge{font-size:9px;color:var(--text-dim);font-weight:600;background:var(--bg3);border:1px solid var(--border2);border-radius:8px;padding:1px 6px;white-space:nowrap;}
+.archive-scroll{flex:1;overflow-y:auto;padding:16px 22px 40px;}
+.archive-toolbar{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.arch-card{background:#fff;border:1px solid var(--border);border-radius:6px;padding:11px 13px;margin-bottom:6px;display:flex;align-items:center;gap:10px;opacity:.75;transition:opacity .15s,border-color .15s;}
+.arch-card:hover{opacity:1;border-color:var(--border2);}
+.arch-card-body{flex:1;min-width:0;}
+.arch-card-name{font-family:'Playfair Display',serif;font-size:13px;font-weight:500;color:var(--text);margin-bottom:2px;}
+.arch-card-meta{font-size:10px;color:var(--text-dim);display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+.arch-restore{background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:4px 10px;font-family:'Outfit',sans-serif;font-size:11px;font-weight:500;color:var(--text-mid);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.arch-restore:hover{background:var(--sage-lt);border-color:var(--sage-md);color:var(--sage);}
+.arch-del{background:none;border:1px solid transparent;border-radius:4px;cursor:pointer;color:var(--text-dim);font-size:13px;padding:3px 6px;transition:all .15s;}
+.arch-del:hover{border-color:var(--terra-md);color:var(--terra);background:var(--terra-lt);}
+.arch-empty{text-align:center;padding:48px 20px;color:var(--text-dim);}
+.arch-section-hdr{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:var(--text-dim);margin-bottom:8px;margin-top:16px;padding-bottom:5px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px;}
+.arch-section-hdr span{background:var(--bg3);border-radius:8px;padding:1px 6px;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ═══ SIDEBAR ═══ -->
+<nav class="sidebar">
+  <div class="sb-logo">
+    <span class="sb-wordmark">Tenant Leads<br>CRM</span>
+    <span class="sb-sub">Curbside Crafters · Singapore</span>
+  </div>
+  <div class="sb-nav">
+    <div class="sb-section-label">Views</div>
+    <button class="nav-item active" id="nav-leads" onclick="switchView('leads')">
+      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="3" rx="1"/><rect x="3" y="10.5" width="12" height="3" rx="1"/><rect x="3" y="17" width="15" height="3" rx="1"/></svg>
+      <span class="nav-label">Tenant Leads</span>
+      <span class="nav-badge" id="nb-leads">—</span>
+    </button>
+    <button class="nav-item" id="nav-pipeline" onclick="switchView('pipeline')">
+      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="2" y="4" width="5" height="16" rx="1"/><rect x="9.5" y="4" width="5" height="16" rx="1"/><rect x="17" y="4" width="5" height="16" rx="1"/></svg>
+      <span class="nav-label">Pipeline Board</span>
+      <span class="nav-badge" id="nb-active">—</span>
+    </button>
+    <button class="nav-item" id="nav-tasks" onclick="switchView('tasks')">
+      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      <span class="nav-label">General Concerns</span>
+      <span class="nav-badge" id="nb-tasks">—</span>
+    </button>
+    <button class="nav-item" id="nav-archive" onclick="switchView('archive')">
+      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><polyline points="21 8 21 21 3 21 3 8"/><rect x="1" y="3" width="22" height="5" rx="1"/><line x1="10" y1="12" x2="14" y2="12"/></svg>
+      <span class="nav-label">Archive</span>
+      <span class="nav-badge" id="nb-archive">—</span>
+    </button>
+    <button class="nav-item" id="nav-admin" onclick="switchView('admin')" style="display:none">
+      <svg class="nav-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+      <span class="nav-label">Admin</span>
+    </button>
+  </div>
+  <div class="sb-user">
+    <div class="sb-user-label">Active User</div>
+    <div class="user-switch">
+      <button class="usw active" id="usw-joanne" onclick="setUser('Joanne')">Joanne</button>
+      <button class="usw" id="usw-boonpeng" onclick="setUser('Boon Peng')">Boon Peng</button>
+    </div>
+  </div>
+  <div class="sb-footer">
+    <div class="sb-footer-txt" id="sf-date-wrap">—</div>
+    <button class="sb-refresh" onclick="refreshAll()">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+      Refresh Data
+    </button>
+  </div>
+</nav>
+
+<!-- ═══ CONTENT ═══ -->
+<div class="content">
+
+  <!-- ──────── VIEW: LEADS TRACKER ──────── -->
+  <div class="view active" id="view-leads">
+    <div class="topbar">
+      <span class="topbar-title">Tenant Leads <em>Brand Intelligence</em></span>
+      <div class="topbar-right">
+        <div class="search-box">
+          <span class="srch-ico">⌕</span>
+          <input type="text" id="srch" placeholder="Search brands…">
+        </div>
+        <button class="vbtn active" id="vgrid" title="Grid">⊞</button>
+        <button class="vbtn" id="vlist" title="List">≡</button>
+        <span class="date-tag" id="ddate">—</span>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat"><div class="stat-l">Total Leads</div><div class="stat-v" id="s1">—</div></div>
+      <div class="stat"><div class="stat-l">New Lead</div><div class="stat-v" id="ps-new">—</div></div>
+      <div class="stat"><div class="stat-l">Engaged</div><div class="stat-v s-hi" id="ps-engaged">—</div></div>
+      <div class="stat"><div class="stat-l">Site Viewing</div><div class="stat-v s-hi" id="ps-viewing">—</div></div>
+      <div class="stat"><div class="stat-l">Negotiating</div><div class="stat-v s-warn" id="ps-negotiating">—</div></div>
+      <div class="stat"><div class="stat-l">Signed</div><div class="stat-v s-terra" id="ps-signed">—</div></div>
+      <div class="stat"><div class="stat-l">Lost</div><div class="stat-v" id="ps-cold">—</div></div>
+    </div>
+    <div class="pipe-bar" id="pbar"><span class="pb-label">Filter by Stage</span></div>
+    <div class="leads-filters">
+      <span class="fl">Type</span>
+      <button class="fp on" data-f="cat" data-v="all">All</button>
+      <button class="fp" data-f="cat" data-v="Home-Based">Home-Based</button>
+      <button class="fp" data-f="cat" data-v="Semi-Established">Semi-Established</button>
+      <div class="fsep"></div>
+      <span class="fl">Owner</span>
+      <button class="fp" data-f="owner" data-v="Joanne">Joanne</button>
+      <button class="fp" data-f="owner" data-v="Boon Peng">Boon Peng</button>
+      <button class="fp" data-f="owner" data-v="unassigned">Unassigned</button>
+      <div class="fsep"></div>
+      <button class="fp" data-f="stale" data-v="1">⏱ Stale</button>
+      <div class="fsort">
+        <select id="srt">
+          <option value="priority">Sort: Priority ↓</option>
+          <option value="name">Sort: Name A–Z</option>
+          <option value="recent">Sort: Recently Updated</option>
+        </select>
+      </div>
+    </div>
+    <div class="leads-scroll" id="mc"></div>
+  </div>
+
+  <!-- ──────── VIEW: PIPELINE BOARD ──────── -->
+  <div class="view" id="view-pipeline">
+    <div class="topbar">
+      <span class="topbar-title">Pipeline Board <em>Outreach Overview</em></span>
+      <span class="date-tag" id="dash-date">—</span>
+    </div>
+    <div class="stats-strip">
+      <div class="stat"><div class="stat-l">All Leads</div><div class="stat-v" id="ds1">—</div></div>
+      <div class="stat"><div class="stat-l">Active Outreach</div><div class="stat-v s-hi" id="ds2">—</div></div>
+      <div class="stat"><div class="stat-l">Signed</div><div class="stat-v s-terra" id="ds3">—</div></div>
+      <div class="stat"><div class="stat-l">Needs Follow-Up</div><div class="stat-v s-warn" id="ds4">—<small>stalled</small></div></div>
+      <div class="stat"><div class="stat-l">Lost</div><div class="stat-v" id="ds6">—</div></div>
+      <div class="stat"><div class="stat-l">Uncontacted</div><div class="stat-v" id="ds7">—</div></div>
+    </div>
+    <div class="dash-fbar">
+      <span class="fl">Filter</span>
+      <button class="fp on" data-pf="cat" data-pv="all">All</button>
+      <button class="fp" data-pf="cat" data-pv="Home-Based">Home-Based</button>
+      <button class="fp" data-pf="cat" data-pv="Semi-Established">Semi-Established</button>
+      <div class="fsep"></div>
+      <button class="fp" data-pf="owner" data-pv="Joanne">Joanne</button>
+      <button class="fp" data-pf="owner" data-pv="Boon Peng">Boon Peng</button>
+      <div class="legend">
+        <span class="leg-item"><span class="leg-dot" style="background:var(--amber)"></span>Needs follow-up</span>
+        <span class="leg-item"><span class="leg-dot" style="background:var(--sage)"></span>Signed / Engaged</span>
+      </div>
+    </div>
+    <div class="board-area">
+      <div class="board-wrap"><div class="board" id="board"></div></div>
+      <div class="activity-panel" id="activity-panel">
+        <div class="ap-header">
+          <div class="ap-title">Recent Updates</div>
+          <div class="ap-sub">Latest changes by team</div>
+        </div>
+        <div class="ap-scroll" id="af-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ──────── VIEW: GENERAL CONCERNS ──────── -->
+  <div class="view" id="view-tasks">
+    <div class="topbar">
+      <span class="topbar-title">General Concerns <em>Task Tracker</em></span>
+      <span class="date-tag" id="tasks-date">—</span>
+    </div>
+    <div class="stats-strip">
+      <div class="stat"><div class="stat-l">Open Tasks</div><div class="stat-v s-warn" id="ts1">—</div></div>
+      <div class="stat"><div class="stat-l">In Progress</div><div class="stat-v s-hi" id="ts2">—</div></div>
+      <div class="stat"><div class="stat-l">Completed</div><div class="stat-v" id="ts3">—</div></div>
+      <div class="stat"><div class="stat-l">Blocked</div><div class="stat-v s-terra" id="ts4">—</div></div>
+      <div class="stat"><div class="stat-l">Joanne's Tasks</div><div class="stat-v" id="ts5">—</div></div>
+      <div class="stat"><div class="stat-l">Boon Peng's Tasks</div><div class="stat-v" id="ts6">—</div></div>
+    </div>
+    <div class="tasks-wrap">
+      <!-- Add task -->
+      <div class="task-add-bar">
+        <div class="task-add-row">
+          <div class="ta-field" style="flex:2">
+            <label>Task / Concern</label>
+            <input type="text" id="ta-title" placeholder="Describe the concern or action item…">
+          </div>
+          <div class="ta-field">
+            <label>Assign To</label>
+            <select id="ta-assign">
+              <option value="Joanne">Joanne</option>
+              <option value="Boon Peng">Boon Peng</option>
+              <option value="Both">Both</option>
+            </select>
+          </div>
+          <div class="ta-field">
+            <label>Status</label>
+            <select id="ta-status">
+              <option value="To Do">To Do</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Blocked">Blocked</option>
+            </select>
+          </div>
+          <button class="ta-add-btn" onclick="addTask()">+ Add</button>
+        </div>
+      </div>
+      <!-- Filters -->
+      <div class="tasks-filters" style="margin-bottom:12px;">
+        <span class="fl">Show</span>
+        <button class="fp on" data-tf="all">All</button>
+        <button class="fp" data-tf="Joanne">Joanne</button>
+        <button class="fp" data-tf="Boon Peng">Boon Peng</button>
+        <div class="fsep"></div>
+        <button class="fp" data-tf="open">Open</button>
+        <button class="fp" data-tf="done">Completed</button>
+      </div>
+      <div id="task-list"></div>
+    </div>
+  </div>
+
+  <!-- ──────── VIEW: ARCHIVE ──────── -->
+  <div class="view" id="view-archive">
+    <div class="topbar">
+      <span class="topbar-title">Archive <em>Cold &amp; Stale Leads</em></span>
+      <div class="topbar-right">
+        <button class="vbtn" onclick="if(confirm('Permanently delete all archived leads? This cannot be undone.'))clearArchive()" style="color:var(--terra)">Clear All</button>
+        <span class="date-tag" id="arch-date">—</span>
+      </div>
+    </div>
+    <div class="stats-strip">
+      <div class="stat"><div class="stat-l">Archived</div><div class="stat-v" id="arch-s1">—</div></div>
+      <div class="stat"><div class="stat-l">Archived Cold</div><div class="stat-v" id="arch-s2">—</div></div>
+      <div class="stat"><div class="stat-l">Archived Stale</div><div class="stat-v s-warn" id="arch-s3">—</div></div>
+    </div>
+    <div class="archive-scroll" id="arch-list-wrap">
+      <div id="arch-list"></div>
+    </div>
+  </div>
+
+  <!-- ──────── VIEW: ADMIN ──────── -->
+  <div class="view" id="view-admin">
+    <div class="topbar">
+      <span class="topbar-title">Admin <em>Lead Management</em></span>
+    </div>
+    <div class="leads-scroll">
+      <div style="max-width:700px">
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:18px 20px;margin-bottom:14px">
+          <div style="font-family:'Playfair Display',serif;font-size:15px;margin-bottom:4px">Add / Update Leads</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:12px;line-height:1.6">Paste a JSON array of lead objects below. New leads will be added. Existing leads (matched by <code>id</code>) will be updated. All other leads and CRM data remain untouched.</div>
+          <textarea id="admin-json" style="width:100%;height:200px;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:10px;font-family:monospace;font-size:11px;color:var(--text);outline:none;resize:vertical;transition:border-color .15s" placeholder='[&#10;  {&#10;    "id": "unique-id",&#10;    "name": "Brand Name",&#10;    "ig": "instagramhandle",&#10;    "igv": false,&#10;    "iu": "https://www.instagram.com/instagramhandle",&#10;    "ws": null,&#10;    "wd": null,&#10;    "cat": "Home-Based",&#10;    "sub": "Beverages · Specialty Coffee",&#10;    "concept": "Description of brand...",&#10;    "pop": "Rising",&#10;    "fol": "~5K est.",&#10;    "aud": "Target audience...",&#10;    "locs": "Current location(s)",&#10;    "fit": "Why they fit at NBR...",&#10;    "mom": "Momentum signals...",&#10;    "ang": "Outreach angle...",&#10;    "notes": "Internal notes...",&#10;    "pri": 7.5&#10;  }&#10;]'></textarea>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px">
+            <button onclick="adminImportLeads()" style="background:var(--terra);border:none;border-radius:5px;padding:7px 16px;font-family:'Outfit',sans-serif;font-size:12px;font-weight:600;color:#fff;cursor:pointer">Import Leads</button>
+            <span id="admin-msg" style="font-size:11px;color:var(--sage);opacity:0;transition:opacity .3s"></span>
+          </div>
+        </div>
+        <div style="background:#fff;border:1px solid var(--border);border-radius:6px;padding:18px 20px">
+          <div style="font-family:'Playfair Display',serif;font-size:15px;margin-bottom:4px">Current Leads</div>
+          <div style="font-size:11px;color:var(--text-dim);margin-bottom:10px">All leads currently in Firebase. <button onclick="adminExportLeads()" style="background:none;border:none;cursor:pointer;color:var(--terra);font-size:11px;text-decoration:underline;font-family:inherit">Export as JSON</button></div>
+          <div id="admin-lead-list" style="font-size:11px;color:var(--text-mid)"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end .content -->
+</div><!-- end .app -->
+
+<!-- DRAWER -->
+<div class="overlay" id="ov" onclick="closeDrawer()"></div>
+<div class="drawer" id="dwr">
+  <div class="dhead">
+    <button class="dclose" onclick="closeDrawer()">✕</button>
+    <div class="dcat" id="d-cat"></div>
+    <div class="dname" id="d-name"></div>
+    <div class="dsub" id="d-sub"></div>
+    <div class="d-owner-row">
+      <span class="d-owner-label">Owner</span>
+      <button class="owner-btn" id="ob-joanne" onclick="setDrawerOwner('Joanne')">
+        <span class="oa" style="background:#B85540">J</span>Joanne
+      </button>
+      <button class="owner-btn" id="ob-boonpeng" onclick="setDrawerOwner('Boon Peng')">
+        <span class="oa" style="background:#3A5F8A">B</span>Boon Peng
+      </button>
+      <button class="owner-btn" id="ob-none" onclick="setDrawerOwner(null)">Unassigned</button>
+    </div>
+  </div>
+  <div class="crm-sec">
+    <div class="crm-title">Outreach Stage</div>
+    <div class="stage-grid" id="sg"></div>
+    <div class="next-step-box">
+      <div class="nsb-label">Next Step</div>
+      <input class="nsb-input" id="next-step-input" placeholder="What needs to happen next…" onblur="saveNextStep()">
+    </div>
+    <div class="note-wrap">
+      <label>Log Note</label>
+      <textarea id="cnote" placeholder="e.g. DM'd founder 17 Apr — sent intro…"></textarea>
+    </div>
+    <div class="crm-row">
+      <button class="save-btn" onclick="saveCRMNote()">Save Log</button>
+      <span class="saved-msg" id="svd">✓ Saved</span>
+      <button id="arch-btn" onclick="archiveFromDrawer()" style="margin-left:auto;background:none;border:1px solid var(--border);border-radius:5px;padding:5px 10px;font-family:'Outfit',sans-serif;font-size:11px;color:var(--text-dim);cursor:pointer;transition:all .15s" onmouseover="this.style.borderColor='var(--border2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text-dim)'">Archive ↓</button>
+    </div>
+    <div class="log-list" id="lgl"></div>
+  </div>
+  <div class="dlinks" id="dlk"></div>
+  <span class="ig-warn" id="igw"></span>
+  <div class="dbody" id="dbody"></div>
+</div>
+
+<!-- PIPELINE POPOVER -->
+<div class="pop-ov" id="pop-ov" onclick="closePopover()"></div>
+<div class="pop" id="pop">
+  <button class="pop-close" onclick="closePopover()">✕</button>
+  <div class="pop-head">
+    <div class="pop-name" id="pop-name"></div>
+    <div class="pop-sub" id="pop-sub"></div>
+  </div>
+  <div class="pop-owner-row">
+    <span class="pop-owner-lbl">Owner</span>
+    <span class="pop-owner-val" id="pop-owner-val">—</span>
+  </div>
+  <div class="pop-sec">Move to Stage</div>
+  <div class="pop-stages" id="pop-stages"></div>
+  <div class="pop-sec">Recent Activity</div>
+  <div class="pop-logs" id="pop-logs"></div>
+  <button class="pop-detail-btn" onclick="openDetailFromPopover()">Open Full Details →</button>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// USERS
+// ═══════════════════════════════════════════
+const USERS={
+  'Joanne':{color:'#B85540',initial:'J'},
+  'Boon Peng':{color:'#3A5F8A',initial:'B'}
+};
+let currentUser='Joanne';
+
+function setUser(u){
+  currentUser=u;
+  document.getElementById('usw-joanne').classList.toggle('active',u==='Joanne');
+  document.getElementById('usw-boonpeng').classList.toggle('active',u==='Boon Peng');
+}
+
+function userAvatar(u,size=16){
+  if(!u||!USERS[u])return`<span style="width:${size}px;height:${size}px;border-radius:50%;background:var(--bg3);border:1px solid var(--border);display:inline-flex;align-items:center;justify-content:center;font-size:${Math.round(size*.55)}px;color:var(--text-dim)">?</span>`;
+  return`<span style="width:${size}px;height:${size}px;border-radius:50%;background:${USERS[u].color};display:inline-flex;align-items:center;justify-content:center;font-size:${Math.round(size*.55)}px;font-weight:700;color:#fff">${USERS[u].initial}</span>`;
+}
+
+// ═══════════════════════════════════════════
+// STAGES (refined)
+// ═══════════════════════════════════════════
+const STAGES=[
+  {id:'new',label:'New Lead',color:'#94A3B8'},
+  {id:'engaged',label:'Engaged',color:'#34D399'},
+  {id:'viewing',label:'Site Viewing',color:'#A78BFA'},
+  {id:'negotiating',label:'Negotiating',color:'#FB923C'},
+  {id:'signed',label:'Signed',color:'#22C55E'},
+  {id:'cold',label:'Lost',color:'#9CA3AF'},
+];
+const SM=Object.fromEntries(STAGES.map(s=>[s.id,s]));
+function sc(id){return SM[id]?.color||'#94A3B8';}
+function sl(id){return SM[id]?.label||'New Lead';}
+
+// ═══════════════════════════════════════════
+// LEADS — loaded from Firebase, seeded on first run
+// ═══════════════════════════════════════════
+let leads=[];
+
+// Seed data — only used if Firebase has no leads yet
+const SEED_LEADS=[
+{id:'paparch',name:'Paparch',ig:'paparchsg',igv:true,
+ iu:'https://www.instagram.com/paparchsg',ws:'https://paparch.sg',wd:'paparch.sg',
+ cat:'Semi-Established',sub:'Dessert · Burnt Cheesecake',
+ concept:'Viral halal basque burnt cheesecake brand — 5 years home-based before opening Arab Street store Nov 2025. Square slices in rotating flavours: ondeh ondeh, miso caramel, pistachio berries. 69K Instagram followers.',
+ pop:'Fast-Growing',fol:'69K ✓ verified',
+ aud:'Halal consumers, dessert lovers, tourists, Gen Z',
+ locs:'48 Arab Street #01-03, Singapore',
+ fit:'Already in the Arab Street precinct. Pitch as pop-up expansion — takeaway only currently.',
+ mom:'Opened Nov 2025. Strong halal dessert demand. Weekend queues.',
+ ang:'Expansion pitch: Arab Street unit has minimal seating. 730 NBR pop-up gives dine-in capability.',
+ notes:'Confirmed active. Pitch as expansion rather than first location.',
+ pri:9.5},
+{id:'huescanele',name:'Hues Canelé',ig:'huescanele',igv:true,
+ iu:'https://www.instagram.com/huescanele',ws:null,wd:null,
+ cat:'Semi-Established',sub:'Bakery · Canelés',
+ concept:'Halal French canelé bakery. Opened first unit Jan 2026 at Sago Lane. Takeaway-only, baked fresh twice daily. Flavours: taro, matcha, earl grey lavender, honey osmanthus yuzu.',
+ pop:'Rising',fol:'Building — recently opened',
+ aud:'Muslim consumers, French pastry enthusiasts, Chinatown visitors',
+ locs:'4 Sago Lane, Chinatown (Jan 2026)',
+ fit:'Takeaway-only at Sago Lane — pop-up at NBR would give brand a second touchpoint.',
+ mom:'Opened Jan 2026. Media coverage from DFD, Confirmgood, Lemon8.',
+ ang:'Brand elevation: they proved the concept — NBR pop-up gives permanence and throughput.',
+ notes:'Confirmed active. Just opened Jan 2026. Approach after settling in.',
+ pri:8.5},
+{id:'konditori',name:'Konditori Artisan Bakes',ig:'konditorisg',igv:true,
+ iu:'https://www.instagram.com/konditorisg',ws:'https://konditori.sg',wd:'konditori.sg',
+ cat:'Semi-Established',sub:'Bakery · European Artisan',
+ concept:'Halal-certified artisan European bakery by Fika Swedish Cafe. Red velvet croissants, basil pesto sourdough. 27K followers. Bussorah Street since 2016.',
+ pop:'Established',fol:'~27K ✓ verified',
+ aud:'Halal food seekers, pastry lovers, Arab Street tourists',
+ locs:'33 Bussorah Street, Singapore',
+ fit:'Already established in precinct. Pop-up could work for seasonal or concept testing.',
+ mom:'Long-established. Strong loyal following.',
+ ang:'Lease renewal intelligence: approach only with specific pop-up pitch.',
+ notes:'Well-established. Lower urgency — approach with a specific concept.',
+ pri:6},
+{id:'andrekafe',name:'An Drea Kafé',ig:'andreakafe',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=an+drea+kafe+singapore+coffee',ws:null,wd:null,
+ cat:'Semi-Established',sub:'Beverages · Specialty Coffee',
+ concept:'Aesthetics-first specialty coffee with a deliberate visual identity. Precision drinks, minimal menu, interiors treated like an art installation.',
+ pop:'Rising',fol:'~5K–12K est.',
+ aud:'Design-conscious millennials, specialty coffee enthusiasts',
+ locs:'Single location (verify address)',
+ fit:'Design-led coffee landing at 730 NBR curbside pop-up.',
+ mom:'Growing social engagement, lifestyle-press features, weekend queues forming.',
+ ang:'Second location: NBR curbside as the natural home for a design-led coffee concept.',
+ notes:'⚠ Unverified — use search link before outreach.',
+ pri:8.5},
+{id:'aptcoffee',name:'Apartment Coffee',ig:'apartmentcoffeesg',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=apartment+coffee+singapore',ws:null,wd:null,
+ cat:'Semi-Established',sub:'Beverages · Specialty Coffee',
+ concept:'Coffee served in a deliberately residential setting — sofas, lamps, bookshelves. Anti-chain, lifestyle-led.',
+ pop:'Rising',fol:'~6K–14K est.',
+ aud:'Work-from-cafe millennials, interiors enthusiasts',
+ locs:'Single small location (verify)',
+ fit:'Pop-up with residential feel at 730 NBR — intimate format suits curbside.',
+ mom:'Lifestyle press pick-ups, Instagram engagement driven by interior photography.',
+ ang:'Curbside as the brand\'s authentic neighbourhood moment.',
+ notes:'⚠ Unverified. Field verify before prioritising.',
+ pri:8},
+{id:'kopiace',name:'Kopi Ace',ig:'kopiace',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=kopi+ace+singapore+kopitiam',ws:null,wd:null,
+ cat:'Semi-Established',sub:'Beverages · Kopi / Coffee',
+ concept:'Modern kopitiam reimagining traditional kopi with specialty-grade sourcing and Gen Z visual identity. Part of SG\'s kopitiam revival wave.',
+ pop:'Rising',fol:'~5K–12K est.',
+ aud:'Gen Z, heritage-curious millennials, young professionals',
+ locs:'Single location (verify)',
+ fit:'Heritage architecture at NBR fits kopitiam revival narrative perfectly.',
+ mom:'Strong cultural tailwind from kopitiam revival; Gen Z nostalgia for heritage F&B.',
+ ang:'Heritage architecture for a heritage concept: 730 NBR completes the cultural narrative.',
+ notes:'⚠ Unverified — confirm before outreach.',
+ pri:8},
+{id:'proofer',name:'Proofer Bakehouse',ig:'prooferbakehouse',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=proofer+bakehouse+singapore+sourdough',ws:null,wd:null,
+ cat:'Home-Based',sub:'Bakery · Sourdough',
+ concept:'Artisan sourdough loaves, focaccia, and laminated pastries. Natural fermentation, premium ingredients. Strong "baking as a craft" brand narrative.',
+ pop:'Rising',fol:'~8K–18K est.',
+ aud:'Food-conscious millennials, home bakers, brunch-culture followers',
+ locs:'Home-based or micro-unit, delivery primary',
+ fit:'Pop-up counter at 730 NBR gives first physical presence — ideal step up from home.',
+ mom:'Regular sellout drops, waitlist ordering, growing food-media press mentions.',
+ ang:'First physical counter: from sellout drops to a real destination.',
+ notes:'⚠ Unverified. Artisan sourdough pop-up format works well curbside.',
+ pri:7.5},
+{id:'nomubar',name:'Nomu Tea Bar',ig:'nomuteabar',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=nomu+tea+bar+singapore+specialty+tea',ws:null,wd:null,
+ cat:'Home-Based',sub:'Beverages · Specialty Tea',
+ concept:'Specialty tea bar built around ceremonial-grade and single-origin teas in a modern bar format. Tea cocktails, cold brews, tea flights.',
+ pop:'Early-Rising',fol:'~3K–8K est.',
+ aud:'Tea enthusiasts, wellness-led consumers',
+ locs:'Pop-up appearances (verify)',
+ fit:'Tea bar pop-up at NBR — heritage architecture fits the ceremony and ritual angle.',
+ mom:'Growing niche; specialty tea genuinely underserved in SG vs coffee.',
+ ang:'First permanent pop-up home for a specialty tea brand doing for tea what third-wave did for coffee.',
+ notes:'⚠ Unverified. Specialty tea is underserved — if real and growing, fast-track.',
+ pri:6.5},
+{id:'woobbee',name:'Woobbee',ig:'woobbee.sg',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=woobbee+singapore+premium+drinks',ws:null,wd:null,
+ cat:'Home-Based',sub:'Beverages · Milk Tea / Brown Sugar',
+ concept:'Premium brown sugar milk tea and drinks concept positioned against Tier 1 chains on quality and aesthetic. Single-outlet, indie.',
+ pop:'Rising',fol:'~5K–12K est.',
+ aud:'Young adults, boba enthusiasts, Gen Z',
+ locs:'Single location (verify)',
+ fit:'Curbside pop-up at NBR gives a premium indie boba brand the location chains cannot claim.',
+ mom:'Growing social traction; premium-indie boba gaining ground against chains.',
+ ang:'Lifestyle-area address gives a premium indie boba brand the location chains can\'t get.',
+ notes:'⚠ Unverified. Confirm differentiation before prioritising.',
+ pri:6},
+{id:'cendoldays',name:'Cendol Days',ig:'cendoldays',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=cendol+days+singapore+heritage+dessert',ws:null,wd:null,
+ cat:'Home-Based',sub:'Dessert · Cendol / Heritage Ice',
+ concept:'Modern take on traditional cendol and Southeast Asian cold desserts with youthful, aesthetic presentation.',
+ pop:'Rising',fol:'~5K–12K est.',
+ aud:'Gen Z, heritage food enthusiasts, tourists',
+ locs:'Pop-up appearances; hawker format (verify)',
+ fit:'Heritage dessert at NBR — curbside pop-up is the authentic setting.',
+ mom:'Heritage-dessert revival cultural tailwind; growing social traction.',
+ ang:'Heritage home: cendol at 730 NBR — the architecture tells the story.',
+ notes:'⚠ Unverified. Heritage shaved-ice category is growing — verify brand traction.',
+ pri:6.5},
+{id:'pandanclub',name:'Pandan Club',ig:'thepandanclub',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=pandan+club+singapore+bakes',ws:null,wd:null,
+ cat:'Home-Based',sub:'Bakery · Pandan / Heritage Flavours',
+ concept:'Home-based brand celebrating pandan as a hero ingredient across cakes, cookies, drinks, and savouries.',
+ pop:'Early-Rising',fol:'~3K–9K est.',
+ aud:'Local flavour enthusiasts, young Singaporeans, heritage-curious tourists',
+ locs:'Home-based; occasional pop-up (verify)',
+ fit:'Single-ingredient concept is ideal for a focused pop-up counter at 730 NBR.',
+ mom:'Pandan gaining broader cultural currency in SG food media; loyal community forming.',
+ ang:'One ingredient, one address: 730 NBR gives the brand a cultural home as strong as the flavour.',
+ notes:'⚠ Unverified. Assess commercial breadth before prioritising.',
+ pri:6},
+{id:'bakerasa',name:'Bake Rasa',ig:'bakerasa.sg',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=bake+rasa+singapore+malay+kuih+bakes',ws:null,wd:null,
+ cat:'Home-Based',sub:'Bakery · Malay Heritage Bakes',
+ concept:'Malay heritage bakes brand — pandan, gula melaka, coconut — with a clean, contemporary visual identity.',
+ pop:'Early-Rising',fol:'~2K–7K est.',
+ aud:'Malay community, young Singaporeans curious about heritage flavours',
+ locs:'Home-based, delivery / pop-up at community events (verify)',
+ fit:'Cultural homecoming: 730 NBR gives a Malay heritage brand an address that makes cultural sense.',
+ mom:'Slow but steady social growth; strong community word-of-mouth.',
+ ang:'Heritage brand in heritage space: the shophouse completes the cultural narrative.',
+ notes:'⚠ Unverified. Early stage — watch list. Approach when community traction grows.',
+ pri:5.5},
+{id:'dearg',name:'Dear G',ig:'deargtreats',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=dear+g+treats+singapore+pastry',ws:null,wd:null,
+ cat:'Home-Based',sub:'Bakery · Artisan Pastries',
+ concept:'Home-based pastry and dessert brand with growing social media audience. Visually stunning bakes with Asian flavour inspiration.',
+ pop:'Rising',fol:'~10K–20K est.',
+ aud:'Young women, gift buyers, dessert community, lifestyle followers',
+ locs:'Home-based, delivery / self-collection',
+ fit:'Brand aesthetic fits NBR strongly. A pop-up counter is the natural step up.',
+ mom:'Growing following, regular sold-out announcements, media community features.',
+ ang:'Brand elevation: from home-based to destination pop-up patisserie.',
+ notes:'⚠ Unverified. Gauge founder ambition in first contact.',
+ pri:7},
+{id:'wonton',name:'The Wonton Story',ig:'thewontonstory',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=wonton+story+singapore+handmade+noodles',ws:null,wd:null,
+ cat:'Home-Based',sub:'Food · Noodles / Dumplings',
+ concept:'Handmade wontons and noodles with a heritage recipe focus. Family recipes and traditional techniques central to brand identity.',
+ pop:'Early-Rising',fol:'~4K–10K est.',
+ aud:'Heritage food fans, young professionals with nostalgia for grandmother-cooking',
+ locs:'Home-based, pop-up appearances (verify)',
+ fit:'Heritage food + 730 NBR heritage architecture is a natural cultural alignment.',
+ mom:'Growing niche community, strong engagement from heritage food followers.',
+ ang:'Heritage home in heritage space: 730 NBR is the kitchen this concept always deserved.',
+ notes:'⚠ Unverified. Heritage wonton / noodle concepts are growing — confirm traction.',
+ pri:7},
+{id:'slowam',name:'Slow AM Coffee',ig:'slowam.coffee',igv:false,
+ iu:'https://www.instagram.com/search/top/?q=slow+am+coffee+singapore+pour+over',ws:null,wd:null,
+ cat:'Home-Based',sub:'Beverages · Specialty Coffee',
+ concept:'Slow-living philosophy applied to morning coffee rituals. Pour-overs, workshops, minimal food.',
+ pop:'Early-Rising',fol:'~3K–8K est.',
+ aud:'Wellness-minded millennials, specialty coffee enthusiasts',
+ locs:'Pop-up appearances / home-based (verify)',
+ fit:'A curbside brew bar at 730 NBR would be the perfect physical manifestation of slow-AM.',
+ mom:'Growing niche community; pop-up events building name recognition in coffee circles.',
+ ang:'The curbside IS the slow-morning ritual — pitch as the brand\'s authentic permanent pop-up home.',
+ notes:'⚠ Unverified. Early stage — watch list first.',
+ pri:5.5},
+];
+
+
+// ═══════════════════════════════════════════
+// SHARED CRM STATE
+// ═══════════════════════════════════════════
+let crm={};
+let tasks=[];
+let activityLog=[];
+let teamNotes=[];
+let archived={}; // {leadId: {reason, date, ts, leadSnapshot}}
+
+async function loadCRM(){
+  try{
+    if(!window._fbReady)await new Promise(r=>window.addEventListener('firebase-ready',r,{once:true}));
+    const ref=window._fbDoc(window._fbDb,'crm','main');
+    const snap=await window._fbGetDoc(ref);
+    if(snap.exists()){
+      const d=snap.data();
+      crm=d.crm||{};tasks=d.tasks||[];activityLog=d.activity||[];teamNotes=d.teamNotes||[];archived=d.archived||{};
+      if(d.leads&&d.leads.length){leads=d.leads;}
+      else{leads=SEED_LEADS;await saveAll();} // first run: seed leads into Firebase
+    } else {
+      leads=SEED_LEADS;await saveAll(); // brand new DB: seed everything
+    }
+  }catch(e){console.warn('Firebase load failed',e);leads=SEED_LEADS;crm={};tasks=[];activityLog=[];teamNotes=[];archived={};}
+}
+
+async function saveAll(){
+  try{
+    if(!window._fbReady)await new Promise(r=>window.addEventListener('firebase-ready',r,{once:true}));
+    const ref=window._fbDoc(window._fbDb,'crm','main');
+    await window._fbSetDoc(ref,{crm,tasks,activity:activityLog,teamNotes,archived,leads});
+  }catch(e){console.warn('Firebase save failed',e);}
+}
+
+function getCRM(id){
+  if(!crm[id])crm[id]={stage:'new',log:[],owner:null,nextStep:''};
+  if(!crm[id].nextStep)crm[id].nextStep='';
+  return crm[id];
+}
+
+function logActivity(leadId,action,detail=''){
+  const lead=leads.find(l=>l.id===leadId);
+  activityLog.unshift({
+    leadId,leadName:lead?lead.name:'Unknown',
+    user:currentUser,action,detail,
+    ts:Date.now(),
+    date:new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'})
+  });
+  if(activityLog.length>50)activityLog.pop();
+}
+
+// staleness: > 7 days since last log
+function daysSince(ts){return(Date.now()-ts)/(1000*60*60*24);}
+function isStale(c){
+  if(!['engaged','viewing','negotiating'].includes(c.stage))return false;
+  if(!c.log||!c.log.length)return true;
+  const last=c.log[c.log.length-1];
+  return !last.ts||daysSince(last.ts)>7;
+}
+function isNew(c){
+  return c.stage==='new'&&(!c.log||!c.log.length);
+}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let leadsView='grid';
+let lFilt={cat:'all',owner:null,stale:false,pipe:null};
+let lSort='priority';
+let lSearch='';
+let activeDrawerId=null;
+let pFilt={cat:'all',owner:null};
+let popLeadId=null;
+let taskFilter='all';
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function spill(id,sm=false){
+  const s=SM[id]||SM.new;
+  return`<span class="sp-pill" style="background:${s.color}22;border-color:${s.color}66;color:${s.color};font-size:${sm?'9':'10'}px">${s.label}</span>`;
+}
+function priClass(p){return p>=8?'ph':p>=6?'pm':'pl';}
+function catPill(cat){
+  if(cat==='Home-Based')return`<span class="cpill cp-home">Home-Based</span>`;
+  return`<span class="cpill cp-semi">Semi-Established</span>`;
+}
+function ownerName(c){return c.owner||null;}
+function ownerDisplay(c){
+  if(!c.owner)return`<span style="font-size:10px;color:var(--text-dim);font-style:italic">Unassigned</span>`;
+  const u=USERS[c.owner];
+  return`${userAvatar(c.owner,14)}<span style="font-size:10px;font-weight:600;color:${u?.color||'var(--text-mid)'}">${c.owner}</span>`;
+}
+function lastUpdatedStr(c){
+  if(!c.log||!c.log.length)return null;
+  const last=c.log[c.log.length-1];
+  return last.date||null;
+}
+
+// ═══════════════════════════════════════════
+// STATS
+// ═══════════════════════════════════════════
+function updateLeadsStats(){
+  const active=leads.filter(l=>!archived[l.id]);
+  const counts={};
+  STAGES.forEach(s=>{counts[s.id]=0;});
+  active.forEach(l=>{const s=getCRM(l.id).stage||'new';counts[s]=(counts[s]||0)+1;});
+  document.getElementById('s1').textContent=active.length;
+  document.getElementById('ps-new').textContent=counts.new||0;
+  document.getElementById('ps-engaged').textContent=counts.engaged||0;
+  document.getElementById('ps-viewing').textContent=counts.viewing||0;
+  document.getElementById('ps-negotiating').textContent=counts.negotiating||0;
+  document.getElementById('ps-signed').textContent=counts.signed||0;
+  document.getElementById('ps-cold').textContent=counts.cold||0;
+  document.getElementById('nb-leads').textContent=active.length;
+  document.getElementById('nb-active').textContent=active.filter(l=>['engaged','viewing','negotiating'].includes(getCRM(l.id).stage)).length;
+  const archCount=Object.keys(archived).length;
+  document.getElementById('nb-archive').textContent=archCount||'';
+}
+
+function updateDashStats(all){
+  const cs=all.map(l=>getCRM(l.id));
+  document.getElementById('ds1').textContent=all.length;
+  document.getElementById('ds2').textContent=cs.filter(c=>['engaged','viewing','negotiating'].includes(c.stage)).length;
+  document.getElementById('ds3').textContent=cs.filter(c=>c.stage==='signed').length;
+  document.getElementById('ds4').textContent=cs.filter(c=>isStale(c)).length;
+  document.getElementById('ds6').textContent=cs.filter(c=>c.stage==='cold').length;
+  document.getElementById('ds7').textContent=cs.filter(c=>c.stage==='new').length;
+}
+
+// ═══════════════════════════════════════════
+// PIPELINE BAR
+// ═══════════════════════════════════════════
+function buildPipelineBar(){
+  const bar=document.getElementById('pbar');
+  bar.querySelectorAll('.pb-stage').forEach(e=>e.remove());
+  const counts={};
+  leads.forEach(l=>{const s=getCRM(l.id).stage||'new';counts[s]=(counts[s]||0)+1;});
+  STAGES.forEach(s=>{
+    const n=counts[s.id]||0;
+    const btn=document.createElement('div');
+    btn.className='pb-stage'+(lFilt.pipe===s.id?' ap':'');
+    btn.innerHTML=`<div class="pb-dot" style="background:${s.color}"></div><span class="pb-name">${s.label}</span><span class="pb-n">${n}</span>`;
+    btn.onclick=()=>{lFilt.pipe=lFilt.pipe===s.id?null:s.id;buildPipelineBar();renderLeads();};
+    bar.appendChild(btn);
+  });
+}
+
+// ═══════════════════════════════════════════
+// LEADS RENDER
+// ═══════════════════════════════════════════
+function leadsFiltered(){
+  let d=leads.filter(l=>!archived[l.id]); // exclude archived
+  if(lFilt.cat&&lFilt.cat!=='all')d=d.filter(l=>l.cat===lFilt.cat);
+  if(lFilt.owner){
+    if(lFilt.owner==='unassigned')d=d.filter(l=>!getCRM(l.id).owner);
+    else d=d.filter(l=>getCRM(l.id).owner===lFilt.owner);
+  }
+  if(lFilt.stale)d=d.filter(l=>isStale(getCRM(l.id)));
+  if(lFilt.pipe)d=d.filter(l=>(getCRM(l.id).stage||'new')===lFilt.pipe);
+  if(lSearch)d=d.filter(l=>l.name.toLowerCase().includes(lSearch)||l.concept.toLowerCase().includes(lSearch)||l.ig.toLowerCase().includes(lSearch)||l.sub.toLowerCase().includes(lSearch));
+  d.sort((a,b)=>{
+    if(lSort==='name')return a.name.localeCompare(b.name);
+    if(lSort==='recent'){
+      const at=getCRM(a.id).log?.slice(-1)[0]?.ts||0;
+      const bt=getCRM(b.id).log?.slice(-1)[0]?.ts||0;
+      return bt-at;
+    }
+    return b.pri-a.pri;
+  });
+  return d;
+}
+
+function renderLeads(){
+  const d=leadsFiltered();
+  const mc=document.getElementById('mc');
+  const meta=`<div class="grid-meta">Showing <b>${d.length}</b> of ${leads.length} leads</div>`;
+  mc.innerHTML=meta+(leadsView==='grid'?renderGrid(d):renderList(d));
+  updateLeadsStats();buildPipelineBar();
+}
+
+function broadCat(sub){
+  const s=sub.toLowerCase();
+  if(s.includes('sauce')||s.includes('sambal')||s.includes('chilli')||s.includes('condiment'))return'Sauces';
+  if(s.includes('beverage')||s.includes('coffee')||s.includes('tea')||s.includes('kopi')||s.includes('milk tea')||s.includes('brown sugar'))return'Beverages';
+  if(s.includes('dessert')||s.includes('cheesecake')||s.includes('ice')||s.includes('cendol')||s.includes('tiramisu'))return'Desserts';
+  if(s.includes('baker')||s.includes('canelé')||s.includes('sourdough')||s.includes('pastry')||s.includes('pandan')||s.includes('malay')||s.includes('bake'))return'Bakeries';
+  return'Food';
+}
+
+function renderGrid(d){
+  if(!d.length)return`<div class="empty"><div style="font-size:32px;margin-bottom:10px">○</div><p>No leads match.</p></div>`;
+
+  // Group by category then subcategory
+  const cats=['Home-Based','Semi-Established'];
+  return cats.map(cat=>{
+    const g=d.filter(l=>l.cat===cat);
+    if(!g.length)return'';
+    const catLabel=cat==='Home-Based'?'Home-Based Businesses':'Semi-Established Businesses';
+    const catDesc=cat==='Home-Based'?'Early-stage, home-run operations ready for their first pop-up':'Brands with an existing presence looking to expand';
+
+    // Group by broad product category
+    const broadOrder=['Beverages','Desserts','Bakeries','Sauces','Food'];
+    const subGroups=broadOrder.map(bc=>{
+      const items=g.filter(l=>broadCat(l.sub)===bc);
+      if(!items.length)return'';
+      return`<div class="subcategory-group">
+        <div class="subcat-hdr">${bc} <span style="background:var(--bg3);border-radius:8px;padding:1px 5px;font-size:9px">${items.length}</span></div>
+        <div class="brand-grid">${items.map(l=>cardH(l)).join('')}</div>
+      </div>`;
+    }).join('');
+
+    return`<div class="cat-group">
+      <div class="cat-hdr">
+        <h3>${catLabel}</h3>
+        <span class="cat-desc">${catDesc}</span>
+        <span class="cat-n">${g.length}</span>
+      </div>
+      ${subGroups}
+    </div>`;
+  }).join('');
+}
+
+function cardH(l){
+  const c=getCRM(l.id);
+  const staleFlag=isStale(c);
+  const newFlag=isNew(c);
+  const lastNote=c.log&&c.log.length?c.log[c.log.length-1].note:'';
+  const lastDate=lastUpdatedStr(c);
+  return`<div class="bcard${activeDrawerId===l.id?' ac':''}${staleFlag?' stale':''}" onclick="openDrawer('${l.id}')">
+    <div class="cstrip" style="background:${sc(c.stage)}"></div>
+    <div class="card-top">
+      <div>
+        <div class="cname">${l.name}</div>
+        <div class="chandle ${l.igv?'ch-v':'ch-u'}" style="color:var(--text-dim)">@${l.ig}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:3px">
+        ${spill(c.stage,true)}
+        ${staleFlag?'<span class="stale-badge">⏱ Stale</span>':''}
+        ${newFlag?'<span class="new-badge">New</span>':''}
+      </div>
+    </div>
+    <div class="cpills">
+      ${catPill(l.cat)}
+      <span class="cpill" style="background:var(--bg2);color:var(--text-dim);border:1px solid var(--border);font-size:9px">${l.sub.split('·')[0].trim()}</span>
+    </div>
+    ${lastNote?`<div class="card-note-snippet">${lastNote}</div>`:''}
+    <div class="card-meta-row">
+      <div class="cm-owner" style="display:flex;align-items:center;gap:4px">${ownerDisplay(c)}</div>
+      ${lastDate?`<div class="cm-date">${lastDate}</div>`:''}
+      ${c.nextStep?`<div style="font-size:9px;color:var(--sage);font-weight:500;width:100%;margin-top:3px">→ ${c.nextStep}</div>`:''}
+    </div>
+  </div>`;
+}
+
+function renderList(d){
+  if(!d.length)return`<div class="empty" style="padding:36px"><p>No leads match.</p></div>`;
+  return`<div class="list-wrap"><table class="ltbl"><thead><tr>
+    <th>Brand</th><th>Type</th><th>Specialty</th><th>Stage</th><th>Owner</th><th>Last Updated</th><th>Next Step</th>
+  </tr></thead><tbody>${d.map(l=>{
+    const c=getCRM(l.id);
+    return`<tr class="ltrow" onclick="openDrawer('${l.id}')">
+      <td><b>${l.name}</b>${isStale(c)?'<span class="stale-badge" style="margin-left:5px">⏱ Stale</span>':''}<br><span style="font-size:10px;color:var(--text-dim)">@${l.ig}</span></td>
+      <td>${catPill(l.cat)}</td>
+      <td style="font-size:11px;color:var(--text-mid)">${l.sub.split('·')[1]?.trim()||l.sub}</td>
+      <td>${spill(c.stage)}</td>
+      <td style="font-size:11px">${c.owner?`<div style="display:flex;align-items:center;gap:4px">${userAvatar(c.owner,14)}<span style="color:${USERS[c.owner]?.color||'var(--text-mid)'};font-weight:600">${c.owner}</span></div>`:'<span style="color:var(--text-dim);font-size:10px;font-style:italic">Unassigned</span>'}</td>
+      <td style="font-size:10px;color:var(--text-dim)">${lastUpdatedStr(c)||'—'}</td>
+      <td style="font-size:11px;color:var(--sage)">${c.nextStep||'—'}</td>
+    </tr>`;
+  }).join('')}</tbody></table></div>`;
+}
+
+// ═══════════════════════════════════════════
+// DRAWER
+// ═══════════════════════════════════════════
+function openDrawer(id){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  activeDrawerId=id;
+  const c=getCRM(id);
+  document.getElementById('d-cat').textContent=l.sub;
+  document.getElementById('d-name').textContent=l.name;
+  document.getElementById('d-sub').textContent=`${l.cat} · @${l.ig}`;
+  renderLog(id);
+  updateOwnerButtons(c.owner);
+
+  // next step
+  document.getElementById('next-step-input').value=c.nextStep||'';
+
+  // stages
+  const sg=document.getElementById('sg');
+  sg.innerHTML=STAGES.map(s=>`<div class="sbtn${c.stage===s.id?' as':''}" onclick="setStage('${id}','${s.id}')" style="${c.stage===s.id?'border-color:'+s.color+';background:'+s.color+'11':''}"><div class="sd" style="background:${s.color}"></div><div class="sn">${s.label}</div></div>`).join('');
+
+  document.getElementById('cnote').value='';
+
+  // links
+  const dlk=document.getElementById('dlk');
+  const igw=document.getElementById('igw');
+  if(l.igv){
+    dlk.innerHTML=`<a class="dlink dl-ig" href="${l.iu}" target="_blank" rel="noopener"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="5"/><circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/></svg>@${l.ig} ✓</a>`;
+    igw.textContent='';
+  }else{
+    dlk.innerHTML=`<a class="dlink dl-srch" href="${l.iu}" target="_blank" rel="noopener">⌕ Search @${l.ig}</a>`;
+    igw.textContent='⚠ Handle unverified — search to find correct profile.';
+  }
+  if(l.ws)dlk.innerHTML+=`<a class="dlink dl-web" href="${l.ws}" target="_blank" rel="noopener">${l.wd}</a>`;
+
+  document.getElementById('dbody').innerHTML=`
+    <div class="dsec"><div class="dst">Concept</div><div class="dbox">${l.concept}</div></div>
+    <div class="dsec"><div class="dst">Quick Facts</div><div class="kv2">
+      <div class="kv"><label>Category</label><span>${l.cat}</span></div>
+      <div class="kv"><label>Specialty</label><span>${l.sub.split('·')[1]?.trim()||l.sub}</span></div>
+      <div class="kv"><label>Popularity</label><span>${l.pop}</span></div>
+      <div class="kv"><label>Followers</label><span>${l.fol}</span></div>
+      <div class="kv" style="grid-column:1/-1"><label>Current Locations</label><span>${l.locs}</span></div>
+      <div class="kv" style="grid-column:1/-1"><label>Audience</label><span>${l.aud}</span></div>
+    </div></div>
+    <div class="dsec"><div class="dst">Momentum Signals</div><div class="dbox green">${l.mom}</div></div>
+    <div class="dsec"><div class="dst">Pop-Up Fit at 730 NBR</div><div class="dbox">${l.fit}</div></div>
+    <div class="dsec"><div class="dst">Outreach Angle</div><div class="dbox terra">${l.ang}</div></div>
+    <div class="dsec"><div class="dst">Notes &amp; Flags</div><div class="dbox amber${l.notes.includes('⚠')?' fl':''}">${l.notes.replace('⚠ ','')}</div></div>`;
+
+  document.getElementById('ov').classList.add('on');
+  document.getElementById('dwr').classList.add('open');
+  renderLeads();
+}
+
+function updateOwnerButtons(owner){
+  ['joanne','boonpeng','none'].forEach(k=>{
+    const btn=document.getElementById('ob-'+k);
+    if(!btn)return;
+    btn.classList.remove('selected');
+    btn.style.background='';btn.style.borderColor='';
+  });
+  if(owner==='Joanne'){
+    const b=document.getElementById('ob-joanne');
+    b.classList.add('selected');b.style.background=USERS['Joanne'].color;b.style.borderColor=USERS['Joanne'].color;
+  }else if(owner==='Boon Peng'){
+    const b=document.getElementById('ob-boonpeng');
+    b.classList.add('selected');b.style.background=USERS['Boon Peng'].color;b.style.borderColor=USERS['Boon Peng'].color;
+  }else{
+    document.getElementById('ob-none').classList.add('selected');
+  }
+}
+
+function setDrawerOwner(owner){
+  if(!activeDrawerId)return;
+  const c=getCRM(activeDrawerId);
+  c.owner=owner;
+  updateOwnerButtons(owner);
+  logActivity(activeDrawerId,'assigned',owner?`Assigned to ${owner}`:'Unassigned');
+  saveAll();renderLeads();
+  if(currentAppView==='pipeline')buildBoard();
+}
+
+function saveNextStep(){
+  if(!activeDrawerId)return;
+  const val=document.getElementById('next-step-input').value.trim();
+  getCRM(activeDrawerId).nextStep=val;
+  saveAll();renderLeads();
+}
+
+function renderLog(id){
+  const c=getCRM(id);const el=document.getElementById('lgl');
+  if(!c.log||!c.log.length){el.innerHTML='<div style="font-size:11px;color:var(--text-dim)">No activity logged yet.</div>';return;}
+  const hdr=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px">
+    <span style="font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim)">${c.log.length} entr${c.log.length===1?'y':'ies'}</span>
+    <button onclick="clearAllLogs('${id}')" style="font-size:10px;color:var(--terra);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:inherit">Clear all</button>
+  </div>`;
+  const rows=[...c.log].reverse().map((e,i)=>{
+    const u=USERS[e.user];
+    return`<div class="log-entry">
+      <div class="le-top">
+        <span class="le-stage" style="color:${sc(e.stage)}">${sl(e.stage)}</span>
+        ${e.user?`<span class="le-user" style="background:${u?.color||'#666'}">${u?.initial||'?'}</span>`:''}
+        <span class="le-date" style="margin-left:auto">${e.date}</span>
+        <button onclick="deleteLog('${id}',${c.log.length-1-i})" title="Delete" style="background:none;border:1px solid var(--border);border-radius:3px;cursor:pointer;color:var(--text-dim);font-size:11px;line-height:1;padding:1px 5px;font-family:inherit" onmouseover="this.style.background='var(--terra-lt)';this.style.color='var(--terra)'" onmouseout="this.style.background='none';this.style.color='var(--text-dim)'">×</button>
+      </div>
+      ${e.note?`<div class="le-note">${e.note}</div>`:''}
+    </div>`;
+  }).join('');
+  el.innerHTML=hdr+rows;
+}
+
+function deleteLog(leadId,origIdx){getCRM(leadId).log.splice(origIdx,1);saveAll();renderLog(leadId);updateLeadsStats();}
+function clearAllLogs(leadId){if(!confirm('Delete all log entries for this lead?'))return;getCRM(leadId).log=[];saveAll();renderLog(leadId);updateLeadsStats();}
+
+function setStage(id,sid){
+  const oldStage=getCRM(id).stage;
+  getCRM(id).stage=sid;
+  const sg=document.getElementById('sg');
+  STAGES.forEach((s,i)=>{const b=sg.children[i];if(!b)return;const on=s.id===sid;b.className='sbtn'+(on?' as':'');b.style.cssText=on?'border-color:'+s.color+';background:'+s.color+'11':''});
+  if(oldStage!==sid)logActivity(id,'stage',`${sl(oldStage)} → ${sl(sid)}`);
+  saveAll();renderLeads();
+  if(currentAppView==='pipeline'){updateDashStats(leads);buildBoard();}
+  renderActivityFeed();
+}
+
+async function saveCRMNote(){
+  if(!activeDrawerId)return;
+  const c=getCRM(activeDrawerId);
+  const note=document.getElementById('cnote').value.trim();
+  if(note){
+    const now=new Date().toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    c.log.push({date:now,stage:c.stage,note,user:currentUser,ts:Date.now()});
+    document.getElementById('cnote').value='';
+    renderLog(activeDrawerId);
+    logActivity(activeDrawerId,'note',note.length>60?note.slice(0,60)+'…':note);
+  }
+  await saveAll();
+  const sv=document.getElementById('svd');sv.classList.add('show');setTimeout(()=>sv.classList.remove('show'),1800);
+  updateLeadsStats();renderLeads();renderActivityFeed();
+}
+
+function closeDrawer(){
+  activeDrawerId=null;
+  document.getElementById('ov').classList.remove('on');
+  document.getElementById('dwr').classList.remove('open');
+  renderLeads();
+}
+
+// ═══════════════════════════════════════════
+// ACTIVITY FEED
+// ═══════════════════════════════════════════
+function dismissActivity(idx,e){
+  e.stopPropagation();
+  activityLog.splice(idx,1);
+  saveAll();renderActivityFeed();
+}
+function clearAllActivity(){
+  if(!confirm('Clear all recent updates?'))return;
+  activityLog=[];saveAll();renderActivityFeed();
+}
+function addTeamNote(){
+  const inp=document.getElementById('team-note-input');
+  const txt=inp.value.trim();if(!txt)return;
+  const now=new Date().toLocaleString('en-GB',{day:'numeric',month:'short',hour:'2-digit',minute:'2-digit'});
+  teamNotes.unshift({id:'tn'+Date.now(),user:currentUser,note:txt,date:now,ts:Date.now()});
+  inp.value='';
+  saveAll();renderActivityFeed();
+}
+function dismissTeamNote(id,e){
+  e.stopPropagation();
+  teamNotes=teamNotes.filter(n=>n.id!==id);
+  saveAll();renderActivityFeed();
+}
+
+function renderActivityFeed(){
+  const el=document.getElementById('af-list');
+  if(!el)return;
+
+  // Team notes section
+  const notesHtml=`<div style="padding:8px 0 4px">
+    <div style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);margin-bottom:5px;font-weight:600">Team Notes</div>
+    <div style="display:flex;gap:4px;margin-bottom:6px">
+      <input id="team-note-input" placeholder="Add a team note…" onkeydown="if(event.key==='Enter')addTeamNote()"
+        style="flex:1;background:var(--bg2);border:1px solid var(--border);border-radius:5px;padding:5px 8px;font-family:'Outfit',sans-serif;font-size:11px;color:var(--text);outline:none">
+      <button onclick="addTeamNote()" style="background:var(--terra);border:none;border-radius:5px;padding:5px 9px;color:#fff;font-family:'Outfit',sans-serif;font-size:11px;font-weight:600;cursor:pointer">+</button>
+    </div>
+    ${teamNotes.length?teamNotes.map(n=>{
+      const u=USERS[n.user];
+      return`<div style="background:#fff;border:1px solid var(--border);border-radius:5px;padding:6px 8px;margin-bottom:4px;position:relative">
+        <div style="display:flex;align-items:center;gap:4px;margin-bottom:2px">
+          <span style="width:14px;height:14px;border-radius:50%;background:${u?.color||'#888'};display:inline-flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff">${u?.initial||'?'}</span>
+          <span style="font-size:10px;font-weight:600;color:var(--text-mid)">${n.user}</span>
+          <span style="font-size:9px;color:var(--text-dim);margin-left:auto;padding-right:16px">${n.date}</span>
+        </div>
+        <div style="font-size:11px;color:var(--text);line-height:1.4">${n.note}</div>
+        <button onclick="dismissTeamNote('${n.id}',event)" title="Dismiss" style="position:absolute;top:5px;right:5px;background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1;padding:1px 3px" onmouseover="this.style.color='var(--terra)'" onmouseout="this.style.color='var(--text-dim)'">×</button>
+      </div>`;
+    }).join(''):'<div style="font-size:10px;color:var(--text-dim);font-style:italic;padding:4px 0">No team notes yet.</div>'}
+  </div>
+  <div style="height:1px;background:var(--border);margin:8px 0"></div>`;
+
+  // Auto-log section — grouped by date
+  let logSection='';
+  if(!activityLog.length){
+    logSection='<div class="ap-empty">No auto-logged updates yet.</div>';
+  }else{
+    // header with clear all
+    logSection=`<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+      <span style="font-size:9px;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);font-weight:600">Activity Log</span>
+      <button onclick="clearAllActivity()" style="font-size:9px;color:var(--terra);background:none;border:none;cursor:pointer;text-decoration:underline;font-family:inherit">Clear all</button>
+    </div>`;
+
+    // group entries by calendar date
+    const groups={};
+    activityLog.slice(0,50).forEach((a,i)=>{
+      // derive a clean date label from the ts
+      let dayLabel='Earlier';
+      if(a.ts){
+        const d=new Date(a.ts);
+        const today=new Date();
+        const yesterday=new Date(today);yesterday.setDate(today.getDate()-1);
+        const dStr=d.toDateString();
+        if(dStr===today.toDateString())dayLabel='Today';
+        else if(dStr===yesterday.toDateString())dayLabel='Yesterday';
+        else dayLabel=d.toLocaleDateString('en-GB',{day:'numeric',month:'short'});
+      }
+      if(!groups[dayLabel])groups[dayLabel]=[];
+      groups[dayLabel].push({...a,_idx:i});
+    });
+
+    // render each date group
+    logSection+=Object.entries(groups).map(([day,entries])=>{
+      const rows=entries.map(a=>{
+        const u=USERS[a.user];
+        let actionText='';
+        if(a.action==='stage')actionText=`→ ${a.detail}`;
+        else if(a.action==='note')actionText=`Note: "${a.detail}"`;
+        else if(a.action==='assigned')actionText=a.detail;
+        // show only time portion from date string
+        const timeStr=a.date?a.date.split(',').pop()?.trim()||a.date:'';
+        return`<div class="af-item" style="position:relative;margin-bottom:4px">
+          <div onclick="switchView('leads');setTimeout(()=>openDrawer('${a.leadId}'),100);closePopover()" style="cursor:pointer">
+            <div class="af-top">
+              <span class="af-avatar" style="background:${u?.color||'#888'}">${u?.initial||'?'}</span>
+              <span class="af-user">${a.user}</span>
+              <span class="af-time">${timeStr}</span>
+            </div>
+            <div class="af-lead">${a.leadName}</div>
+            <div class="af-action">${actionText}</div>
+          </div>
+          <button onclick="dismissActivity(${a._idx},event)" title="Dismiss" style="position:absolute;top:5px;right:5px;background:none;border:none;cursor:pointer;color:var(--text-dim);font-size:13px;line-height:1;padding:1px 3px" onmouseover="this.style.color='var(--terra)'" onmouseout="this.style.color='var(--text-dim)'">×</button>
+        </div>`;
+      }).join('');
+
+      return`<div style="margin-bottom:10px">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--text-dim);padding:4px 0;border-bottom:1px solid var(--border);margin-bottom:5px;display:flex;align-items:center;justify-content:space-between">
+          <span>${day}</span>
+          <span style="font-weight:400;font-size:9px">${entries.length} update${entries.length===1?'':'s'}</span>
+        </div>
+        ${rows}
+      </div>`;
+    }).join('');
+  }
+
+  el.innerHTML=notesHtml+logSection;
+}
+
+// ═══════════════════════════════════════════
+// PIPELINE BOARD
+// ═══════════════════════════════════════════
+function pipeFiltered(){
+  let d=leads.filter(l=>!archived[l.id]);
+  if(pFilt.cat&&pFilt.cat!=='all')d=d.filter(l=>l.cat===pFilt.cat);
+  if(pFilt.owner)d=d.filter(l=>getCRM(l.id).owner===pFilt.owner);
+  return d;
+}
+
+function kpopClass(p){
+  if(p==='Home-Based')return'kcp-home';
+  return'kcp-semi';
+}
+
+function buildBoard(){
+  const d=pipeFiltered();
+  updateDashStats(d);
+  const board=document.getElementById('board');
+  board.innerHTML='';
+  STAGES.forEach(stage=>{
+    const sl2=d.filter(l=>(getCRM(l.id).stage||'new')===stage.id);
+    sl2.sort((a,b)=>b.pri-a.pri);
+    const col=document.createElement('div');
+    col.className='col';
+    col.style.background=stage.color+'18';
+    col.style.borderColor=stage.color+'40';
+    const cards=sl2.length===0?'<div class="col-empty">No leads</div>':sl2.map(l=>{
+      const c=getCRM(l.id);
+      const last=c.log&&c.log.length?c.log[c.log.length-1]:null;
+      const stale=isStale(c);
+      return`<div class="kc${stale?' att-card':''}" style="border-left-color:${stage.color}" onclick="openPopover(event,'${l.id}')">
+        ${stale?'<div class="kc-att" title="Needs follow-up — stalled outreach"></div>':''}
+        <div class="kc-name">${l.name}</div>
+        <div class="kc-sub">${l.sub.split('·')[1]?.trim()||l.sub}</div>
+        <div class="kc-pills">
+          <span class="kcp ${kpopClass(l.cat)}">${l.cat==='Home-Based'?'Home-Based':'Semi-Est.'}</span>
+        </div>
+        ${last&&last.note?`<div class="kc-note">${last.note}</div>`:'<div class="kc-note" style="color:var(--text-dim);font-style:italic">No notes yet</div>'}
+        <div class="kc-meta">
+          <div style="display:flex;align-items:center;gap:4px">
+            ${userAvatar(c.owner,14)}
+            <span class="kc-date">${last?last.date:'—'}</span>
+          </div>
+        </div>
+      </div>`;
+    }).join('');
+    col.innerHTML=`<div class="col-hdr" style="background:${stage.color}28;border-bottom:1px solid ${stage.color}30"><span class="col-title" style="color:${stage.color}">${stage.label}</span><span class="col-count" style="background:${stage.color}30;color:${stage.color}">${sl2.length}</span></div><div class="col-cards">${cards}</div>`;
+    board.appendChild(col);
+  });
+  renderActivityFeed();
+}
+
+function openPopover(e,id){
+  e.stopPropagation();
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  popLeadId=id;const c=getCRM(id);
+  document.getElementById('pop-name').textContent=l.name;
+  document.getElementById('pop-sub').textContent=l.sub;
+  document.getElementById('pop-owner-val').innerHTML=c.owner?`<span style="display:flex;align-items:center;gap:4px">${userAvatar(c.owner,14)}<span>${c.owner}</span></span>`:'Unassigned';
+  document.getElementById('pop-stages').innerHTML=STAGES.map(s=>`<div class="pstg${c.stage===s.id?' ps-on':''}" onclick="setPipeStage('${id}','${s.id}')" style="${c.stage===s.id?'border-color:'+s.color+';background:'+s.color+'11':''}"><div class="pstg-dot" style="background:${s.color}"></div><div class="pstg-n">${s.label}</div></div>`).join('');
+  const ll=document.getElementById('pop-logs');
+  if(!c.log||!c.log.length)ll.innerHTML='<div class="pop-no-logs">No activity logged yet.</div>';
+  else ll.innerHTML=[...c.log].reverse().slice(0,5).map(entry=>{
+    const u=USERS[entry.user];
+    return`<div class="plog"><div class="plog-top"><span class="plog-stg" style="color:${sc(entry.stage)}">${sl(entry.stage)}</span>${entry.user?`<span class="plog-user" style="background:${u?.color||'#666'}">${entry.user}</span>`:''}<span class="plog-date">${entry.date}</span></div>${entry.note?`<div class="plog-note">${entry.note}</div>`:''}</div>`;
+  }).join('');
+  const pop=document.getElementById('pop');const pw=290,ph=420;
+  let x=e.clientX+10,y=e.clientY-20;
+  if(x+pw>window.innerWidth-10)x=e.clientX-pw-10;
+  if(y+ph>window.innerHeight-10)y=window.innerHeight-ph-10;
+  pop.style.left=Math.max(8,x)+'px';pop.style.top=Math.max(8,y)+'px';
+  document.getElementById('pop-ov').style.display='block';pop.style.display='block';
+}
+
+function setPipeStage(id,sid){
+  const oldStage=getCRM(id).stage;
+  getCRM(id).stage=sid;
+  saveAll();
+  if(oldStage!==sid)logActivity(id,'stage',`${sl(oldStage)} → ${sl(sid)}`);
+  document.getElementById('pop-stages').querySelectorAll('.pstg').forEach((b,i)=>{const s=STAGES[i];const on=s.id===sid;b.className='pstg'+(on?' ps-on':'');b.style.cssText=on?'border-color:'+s.color+';background:'+s.color+'11':''});
+  buildBoard();updateLeadsStats();renderLeads();renderActivityFeed();
+}
+
+function openDetailFromPopover(){
+  if(!popLeadId)return;closePopover();switchView('leads');setTimeout(()=>openDrawer(popLeadId),100);
+}
+function closePopover(){document.getElementById('pop-ov').style.display='none';document.getElementById('pop').style.display='none';popLeadId=null;}
+
+// ═══════════════════════════════════════════
+// TASKS
+// ═══════════════════════════════════════════
+function taskStatusClass(s){
+  if(s==='To Do')return'ts-todo';
+  if(s==='In Progress')return'ts-inprog';
+  if(s==='Done')return'ts-done';
+  if(s==='Blocked')return'ts-blocked';
+  return'ts-todo';
+}
+
+function addTask(){
+  const title=document.getElementById('ta-title').value.trim();
+  if(!title)return;
+  const assign=document.getElementById('ta-assign').value;
+  const status=document.getElementById('ta-status').value;
+  const now=new Date().toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  tasks.push({id:'t'+Date.now(),title,assignee:assign,status,done:false,createdBy:currentUser,date:now,ts:Date.now()});
+  document.getElementById('ta-title').value='';
+  saveAll();renderTasks();updateTaskStats();
+}
+
+function toggleTask(id){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  t.done=!t.done;
+  t.status=t.done?'Done':t.status==='Done'?'To Do':t.status;
+  saveAll();renderTasks();updateTaskStats();
+}
+
+function deleteTask(id){
+  const i=tasks.findIndex(x=>x.id===id);
+  if(i>-1)tasks.splice(i,1);
+  saveAll();renderTasks();updateTaskStats();
+}
+
+function setTaskStatus(id,status){
+  const t=tasks.find(x=>x.id===id);
+  if(!t)return;
+  t.status=status;
+  t.done=status==='Done';
+  saveAll();renderTasks();updateTaskStats();
+}
+
+function updateTaskStats(){
+  const open=tasks.filter(t=>!t.done&&t.status!=='Done');
+  document.getElementById('ts1').textContent=open.filter(t=>t.status==='To Do').length;
+  document.getElementById('ts2').textContent=open.filter(t=>t.status==='In Progress').length;
+  document.getElementById('ts3').textContent=tasks.filter(t=>t.done||t.status==='Done').length;
+  document.getElementById('ts4').textContent=tasks.filter(t=>t.status==='Blocked').length;
+  document.getElementById('ts5').textContent=tasks.filter(t=>t.assignee==='Joanne'||t.assignee==='Both').length;
+  document.getElementById('ts6').textContent=tasks.filter(t=>t.assignee==='Boon Peng'||t.assignee==='Both').length;
+  document.getElementById('nb-tasks').textContent=tasks.filter(t=>!t.done&&t.status!=='Done').length||'';
+}
+
+function renderTasks(){
+  const el=document.getElementById('task-list');
+  let d=[...tasks];
+  if(taskFilter==='Joanne')d=d.filter(t=>t.assignee==='Joanne'||t.assignee==='Both');
+  else if(taskFilter==='Boon Peng')d=d.filter(t=>t.assignee==='Boon Peng'||t.assignee==='Both');
+  else if(taskFilter==='open')d=d.filter(t=>!t.done&&t.status!=='Done');
+  else if(taskFilter==='done')d=d.filter(t=>t.done||t.status==='Done');
+  d.sort((a,b)=>b.ts-a.ts);
+  const open=d.filter(t=>!t.done&&t.status!=='Done');
+  const done=d.filter(t=>t.done||t.status==='Done');
+  let html='';
+  if(open.length){
+    html+=`<div class="task-section-hdr">Open <span>${open.length}</span></div>`;
+    html+=open.map(t=>taskCard(t)).join('');
+  }
+  if(done.length&&(taskFilter==='all'||taskFilter==='done')){
+    html+=`<div class="task-section-hdr">Completed <span>${done.length}</span></div>`;
+    html+=done.map(t=>taskCard(t)).join('');
+  }
+  if(!d.length)html='<div class="empty"><p>No concerns logged yet.</p></div>';
+  el.innerHTML=html;
+  updateTaskStats();
+}
+
+function taskCard(t){
+  const u=USERS[t.assignee];
+  const statusOpts=['To Do','In Progress','Blocked','Done'].map(s=>`<option${t.status===s?' selected':''}>${s}</option>`).join('');
+  return`<div class="task-card${t.done?' tc-done':''}">
+    <div class="tc-check${t.done?' checked':''}" onclick="toggleTask('${t.id}')">${t.done?'✓':''}</div>
+    <div class="tc-body">
+      <div class="tc-title">${t.title}</div>
+      <div class="tc-meta">
+        <span class="tc-assignee">
+          <span class="ta-av" style="background:${u?.color||'#888'}">${u?.initial||t.assignee[0]}</span>
+          <span style="color:${u?.color||'var(--text-mid)'}">${t.assignee}</span>
+        </span>
+        <select onchange="setTaskStatus('${t.id}',this.value)" style="font-size:10px;border:1px solid var(--border);border-radius:4px;padding:1px 4px;background:#fff;font-family:'Outfit',sans-serif;cursor:pointer;color:var(--text-mid);outline:none">${statusOpts}</select>
+        <span class="tc-date">${t.date}</span>
+        ${t.createdBy?`<span style="font-size:9px;color:var(--text-dim)">by ${t.createdBy}</span>`:''}
+      </div>
+    </div>
+    <button class="tc-del" onclick="deleteTask('${t.id}')">×</button>
+  </div>`;
+}
+
+// ═══════════════════════════════════════════
+// ARCHIVE
+// ═══════════════════════════════════════════
+function archiveLead(id, reason='manual'){
+  const lead=leads.find(l=>l.id===id);
+  if(!lead)return;
+  const now=new Date().toLocaleString('en-GB',{day:'numeric',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+  archived[id]={reason,date:now,ts:Date.now(),name:lead.name,cat:lead.cat,sub:lead.sub,stage:getCRM(id).stage,archivedBy:currentUser};
+  saveAll();
+  closeDrawer();
+  renderLeads();updateLeadsStats();
+  if(currentAppView==='pipeline')buildBoard();
+  if(currentAppView==='archive')renderArchive();
+}
+
+function archiveFromDrawer(){
+  if(!activeDrawerId)return;
+  const c=getCRM(activeDrawerId);
+  const reason=c.stage==='cold'?'cold':isStale(c)?'stale':'manual';
+  if(!confirm(`Archive this lead? It will be removed from the active board and stored in Archive.`))return;
+  archiveLead(activeDrawerId,reason);
+}
+
+function restoreLead(id){
+  delete archived[id];
+  saveAll();
+  renderArchive();updateLeadsStats();
+  renderLeads();
+}
+
+function deleteArchivedLead(id){
+  if(!confirm('Permanently delete this lead from the archive?'))return;
+  delete archived[id];
+  saveAll();renderArchive();updateLeadsStats();
+}
+
+function clearArchive(){
+  archived={};saveAll();renderArchive();updateLeadsStats();
+}
+
+function renderArchive(){
+  const el=document.getElementById('arch-list');
+  if(!el)return;
+  const entries=Object.entries(archived).sort((a,b)=>b[1].ts-a[1].ts);
+  // stats
+  document.getElementById('arch-s1').textContent=entries.length;
+  document.getElementById('arch-s2').textContent=entries.filter(([,v])=>v.reason==='cold').length;
+  document.getElementById('arch-s3').textContent=entries.filter(([,v])=>v.reason==='stale').length;
+  document.getElementById('nb-archive').textContent=entries.length||'';
+
+  if(!entries.length){el.innerHTML='<div class="arch-empty"><div style="font-size:28px;margin-bottom:8px">○</div><p>No archived leads yet.</p><p style="font-size:11px;margin-top:4px">Archive cold or stale leads to keep your board clean.</p></div>';return;}
+
+  // Group by reason
+  const groups=[
+    {key:'cold',label:'Lost Leads'},
+    {key:'stale',label:'Stale / Inactive'},
+    {key:'manual',label:'Manually Archived'},
+  ];
+  el.innerHTML=groups.map(g=>{
+    const items=entries.filter(([,v])=>v.reason===g.key);
+    if(!items.length)return'';
+    return`<div class="arch-section-hdr">${g.label} <span>${items.length}</span></div>`+
+    items.map(([id,v])=>`<div class="arch-card">
+      <div class="arch-card-body">
+        <div class="arch-card-name">${v.name}</div>
+        <div class="arch-card-meta">
+          <span>${v.cat}</span>
+          <span>·</span>
+          <span>${v.sub.split('·')[1]?.trim()||v.sub}</span>
+          <span>·</span>
+          <span style="color:${sc(v.stage)};font-weight:600">${sl(v.stage)}</span>
+          <span>·</span>
+          <span>Archived ${v.date}${v.archivedBy?' by '+v.archivedBy:''}</span>
+        </div>
+      </div>
+      <button class="arch-restore" onclick="restoreLead('${id}')">Restore</button>
+      <button class="arch-del" onclick="deleteArchivedLead('${id}')" title="Delete permanently">×</button>
+    </div>`).join('');
+  }).join('');
+}
+
+// ═══════════════════════════════════════════
+// VIEW SWITCHING
+// ═══════════════════════════════════════════
+let currentAppView='leads';
+function switchView(view){
+  currentAppView=view;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+view).classList.add('active');
+  if(view==='pipeline'){buildBoard();renderActivityFeed();}
+  if(view==='leads')renderLeads();
+  if(view==='tasks')renderTasks();
+  if(view==='archive')renderArchive();
+  if(view==='admin')renderAdminLeadList();
+  closeDrawer();closePopover();
+}
+
+async function refreshAll(){
+  await loadCRM();
+  leads.forEach(l=>getCRM(l.id));
+  renderLeads();
+  if(currentAppView==='pipeline')buildBoard();
+  if(currentAppView==='tasks')renderTasks();
+  updateLeadsStats();updateTaskStats();
+}
+
+// ═══════════════════════════════════════════
+// FILTER EVENT LISTENERS
+// ═══════════════════════════════════════════
+document.querySelectorAll('[data-f]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const f=b.dataset.f,v=b.dataset.v;
+    if(f==='cat'){document.querySelectorAll('[data-f="cat"]').forEach(x=>x.classList.remove('on'));b.classList.add('on');lFilt.cat=v;}
+    else if(f==='owner'){
+      const wasOn=b.classList.contains('on');
+      document.querySelectorAll('[data-f="owner"]').forEach(x=>x.classList.remove('on'));
+      lFilt.owner=wasOn?null:v;
+      if(!wasOn)b.classList.add('on');
+    }
+    else if(f==='stale'){lFilt.stale=!lFilt.stale;b.classList.toggle('on',lFilt.stale);}
+    renderLeads();
+  });
+});
+
+document.querySelectorAll('[data-pf]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    const f=b.dataset.pf,v=b.dataset.pv;
+    if(f==='cat'){document.querySelectorAll('[data-pf="cat"]').forEach(x=>x.classList.remove('on'));b.classList.add('on');pFilt.cat=v;}
+    else if(f==='owner'){
+      const wasOn=b.classList.contains('on');
+      document.querySelectorAll('[data-pf="owner"]').forEach(x=>x.classList.remove('on'));
+      pFilt.owner=wasOn?null:v;
+      if(!wasOn)b.classList.add('on');
+    }
+    buildBoard();
+  });
+});
+
+document.querySelectorAll('[data-tf]').forEach(b=>{
+  b.addEventListener('click',()=>{
+    document.querySelectorAll('[data-tf]').forEach(x=>x.classList.remove('on'));
+    b.classList.add('on');
+    taskFilter=b.dataset.tf;
+    renderTasks();
+  });
+});
+
+document.getElementById('srt').addEventListener('change',e=>{lSort=e.target.value;renderLeads();});
+document.getElementById('srch').addEventListener('input',e=>{lSearch=e.target.value.toLowerCase().trim();renderLeads();});
+document.getElementById('vgrid').addEventListener('click',()=>{leadsView='grid';document.getElementById('vgrid').classList.add('active');document.getElementById('vlist').classList.remove('active');renderLeads();});
+document.getElementById('vlist').addEventListener('click',()=>{leadsView='list';document.getElementById('vlist').classList.add('active');document.getElementById('vgrid').classList.remove('active');renderLeads();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){closeDrawer();closePopover();}});
+
+// dates
+const nowStr=new Date().toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+document.getElementById('ddate').textContent=nowStr;
+document.getElementById('dash-date').textContent=nowStr;
+document.getElementById('tasks-date').textContent=nowStr;
+document.getElementById('arch-date').textContent=nowStr;
+document.getElementById('sf-date-wrap').innerHTML=`<b>${nowStr}</b><br>Curbside Crafters`;
+
+// ═══════════════════════════════════════════
+// ADMIN
+// ═══════════════════════════════════════════
+function renderAdminLeadList(){
+  const el=document.getElementById('admin-lead-list');
+  if(!el)return;
+  if(!leads.length){el.innerHTML='<em>No leads in database.</em>';return;}
+  el.innerHTML=leads.map(l=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span style="flex:1;font-weight:500;color:var(--text)">${l.name}</span>
+      <span style="color:var(--text-dim)">${l.cat}</span>
+      <span style="color:var(--text-dim)">·</span>
+      <span style="color:var(--text-dim)">${(l.sub||'').split('·')[1]?.trim()||l.sub}</span>
+      <button onclick="adminDeleteLead('${l.id}')" style="background:none;border:1px solid transparent;border-radius:4px;cursor:pointer;color:var(--text-dim);font-size:12px;padding:1px 6px;transition:all .15s" onmouseover="this.style.borderColor='var(--terra-md)';this.style.color='var(--terra)'" onmouseout="this.style.borderColor='transparent';this.style.color='var(--text-dim)'">×</button>
+    </div>`).join('');
+}
+
+async function adminImportLeads(){
+  const raw=document.getElementById('admin-json').value.trim();
+  if(!raw)return;
+  let parsed;
+  try{parsed=JSON.parse(raw);}
+  catch(e){alert('Invalid JSON — check the format and try again.');return;}
+  if(!Array.isArray(parsed)){alert('Must be a JSON array [ ... ]');return;}
+  // merge: update existing by id, append new ones
+  parsed.forEach(newL=>{
+    const idx=leads.findIndex(l=>l.id===newL.id);
+    if(idx>-1)leads[idx]={...leads[idx],...newL};
+    else leads.push(newL);
+  });
+  await saveAll();
+  document.getElementById('admin-json').value='';
+  const msg=document.getElementById('admin-msg');
+  msg.textContent=`✓ ${parsed.length} lead(s) imported`;
+  msg.style.opacity=1;setTimeout(()=>msg.style.opacity=0,3000);
+  renderAdminLeadList();
+  renderLeads();updateLeadsStats();
+}
+
+async function adminDeleteLead(id){
+  if(!confirm('Remove this lead from the database?'))return;
+  leads=leads.filter(l=>l.id!==id);
+  await saveAll();
+  renderAdminLeadList();renderLeads();updateLeadsStats();
+}
+
+function adminExportLeads(){
+  const blob=new Blob([JSON.stringify(leads,null,2)],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  a.download='leads_export.json';
+  a.click();
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+(async()=>{
+  // show admin nav if ?admin=1
+  if(new URLSearchParams(window.location.search).get('admin')==='1'){
+    document.getElementById('nav-admin').style.display='flex';
+  }
+
+  // show loading state
+  document.getElementById('mc').innerHTML='<div class="empty"><div style="font-size:24px;margin-bottom:8px">◌</div><p style="font-size:12px">Connecting to database…</p></div>';
+  await loadCRM();
+  leads.forEach(l=>getCRM(l.id));
+  renderLeads();
+  updateTaskStats();
+
+  // real-time listener — syncs all views when another user saves
+  const setupListener=()=>{
+    const ref=window._fbDoc(window._fbDb,'crm','main');
+    window._fbOnSnapshot(ref,snap=>{
+      if(!snap.exists())return;
+      const d=snap.data();
+      crm=d.crm||{};tasks=d.tasks||[];activityLog=d.activity||[];teamNotes=d.teamNotes||[];archived=d.archived||{};
+      if(d.leads&&d.leads.length)leads=d.leads;
+      leads.forEach(l=>getCRM(l.id));
+      if(currentAppView==='leads')renderLeads();
+      if(currentAppView==='pipeline'){buildBoard();renderActivityFeed();}
+      if(currentAppView==='tasks')renderTasks();
+      if(currentAppView==='archive')renderArchive();
+      if(currentAppView==='admin')renderAdminLeadList();
+      updateLeadsStats();updateTaskStats();
+    });
+  };
+
+  if(window._fbReady)setupListener();
+  else window.addEventListener('firebase-ready',setupListener,{once:true});
+})();
+</script>
+</body>
+</html>
